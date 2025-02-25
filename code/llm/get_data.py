@@ -4,9 +4,10 @@ import re
 import os
 import sys
 import pickle
+import asyncio
+from tqdm.asyncio import tqdm
 from dataclasses import dataclass
-from openai import OpenAI
-from openai.types.chat import ChatCompletion
+from openai import AsyncOpenAI
 
 @dataclass
 class Path:
@@ -49,13 +50,13 @@ B) {B}
 
 ANSWER_PATTERN = r"(?i)Answer[ \t]*:[ \t]*\$?([AB])\$?"
 
-def get_response(client: OpenAI, answer: Answer) -> ChatCompletion:
+async def get_response(client: AsyncOpenAI, answer: Answer) -> Answer:
     question_data = {
         "A": answer.path_a.short,
         "B": answer.path_b.short,
     }
 
-    completion = client.chat.completions.create(
+    completion = await client.chat.completions.create(
         model="gpt-4o-mini",
         messages = [
             {"role": "user", "content": QUESTION_TEMPLATE.format(**question_data)},
@@ -65,7 +66,7 @@ def get_response(client: OpenAI, answer: Answer) -> ChatCompletion:
     choice = match.group(1) if match else None
     return Answer(answer.path_a, answer.path_b, choice)
 
-def main():
+async def main():
     if len(sys.argv) < 4:
         print(f"Usage: {sys.argv[0]} <answers.txt> <paths.pkl> <out_dir>")
         return
@@ -83,12 +84,17 @@ def main():
         for line in f.read().strip().split('\n'):
             answers.append(Answer.from_str(line, paths))
 
-    client = OpenAI()
+    client = AsyncOpenAI()
+    openai_answers = []
+    for i in range(0, len(answers), 10):
+        print("Handling {i+10}/{len(answers)}")
+        subset = answers[i:i+10]
+        openai_answers.extend(await tqdm.gather(*[get_response(client, answer) for answer in subset]))
 
-    print(answers[0])
-    print(get_response(client, answers[0]))
+    with open(f"{out_dir}/openai_answers.txt", 'w') as f:
+        f.write('\n'.join(str(i) for i in openai_answers))
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
 
