@@ -49,7 +49,7 @@ def train(features, fea_len, split_frac, out_file, save=False, save_folder=None)
 	'''
 	if isinstance(out_file, str):
 		out_file = open(out_file, 'w')
-	d = Dataset(features, split_frac, 1, gpu)
+	d = Dataset(features, split_frac, gpu)
 	print('defining architecture')
 	enc = ChainEncoder(d.get_v_fea_len(), d.get_e_fea_len(), fea_len, 'last')
 	predictor = Predictor(fea_len)
@@ -62,22 +62,28 @@ def train(features, fea_len, split_frac, out_file, save=False, save_folder=None)
 	optimizer = optim.Adam(list(enc.parameters())+list(predictor.parameters()))
 
 	print('training')
-	test_v_features, test_e_features, test_A_pls, test_B_pls, test_y = d.get_test_pairs()
+	# test_v_features, test_e_features, test_A_pls, test_B_pls, test_y = d.get_test_pairs()
+	test_chain_A, test_chain_B, test_y = d.get_test_pairs()
 	test_y = test_y.data.cpu().numpy()
 	for train_iter in range(12000):
-		v_features, e_features, A_pls, B_pls, y = d.get_train_pairs(100)
+		# v_features, e_features, A_pls, B_pls, y = d.get_train_pairs(100)
+		chains_A, chains_B, y = d.get_train_pairs(1000)
 		enc.zero_grad()
 		predictor.zero_grad()
-		A_code, B_code = encode(enc, fea_len, v_features, e_features, A_pls, B_pls)
-		softmax_output = predictor(A_code, B_code)
+		output_A = enc(chains_A)
+		output_B = enc(chains_B)
+		# A_code, B_code = encode(enc, fea_len, v_features, e_features, A_pls, B_pls)
+		softmax_output = predictor(output_A, output_B)
 		loss_val = loss(softmax_output, y)
 		loss_val.backward()
 		optimizer.step()
 
 		enc.zero_grad()
 		predictor.zero_grad()
-		test_A_code, test_B_code = encode(enc, fea_len, test_v_features, test_e_features, test_A_pls, test_B_pls)
-		softmax_output = predictor(test_A_code, test_B_code).data.cpu().numpy()
+		# test_A_code, test_B_code = encode(enc, fea_len, test_v_features, test_e_features, test_A_pls, test_B_pls)
+		output_test_A = enc(test_chain_A)
+		output_test_B = enc(test_chain_B)
+		softmax_output = predictor(output_test_A, output_test_B).data.cpu().numpy()
 		test_y_pred = softmax_output.argmax(axis=1)
 		cur_acc = (test_y_pred==test_y).sum() / len(test_y)
 		out_file.write('%f\n'%cur_acc)
@@ -92,7 +98,7 @@ def train(features, fea_len, split_frac, out_file, save=False, save_folder=None)
 	out_file.close()
 
 if __name__ == '__main__':
-	gpu = True
+	gpu = False
 	features = ['v_enc_dim300', 'v_freq_freq', 'v_deg', 'v_sense', 'e_vertexsim', 
 		'e_dir', 'e_rel', 'e_weightsource', 'e_srank_rel', 'e_trank_rel', 'e_sense']
 	feature_len = 10
