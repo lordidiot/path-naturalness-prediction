@@ -37,19 +37,19 @@ class Dataset:
 		self.cached_features = dict()
 		self.gpu = gpu
 		for f in feature_names:
-			print 'loading '+f
+			print('loading '+f)
 			self.cached_features[f] = pickle.load(
-				open('features/%s.pkl'%f, 'rb'))
+				open('features/%s.pkl'%f, 'rb'), encoding='latin1')
 		sampled_problems = pickle.load(open(
 			'../../data/science/paths.pkl', 'rb'))
 		self.texts = dict()
-		print 'loading problem plain texts'
+		print('loading problem plain texts')
 		for id_num in sampled_problems:
 			f_short = sampled_problems[id_num]['forward']['short']
 			r_short = sampled_problems[id_num]['reverse']['short']
 			self.texts[id_num+'f'] = f_short
 			self.texts[id_num+'r'] = r_short
-		print 'loading labeled pairs'
+		print('loading labeled pairs')
 		self.all_pairs = [] # list of id tuples (good, bad)
 		for l in open('../../data/science/answers.txt'):
 			first, second, good = l.strip().split('_')
@@ -91,8 +91,8 @@ class Dataset:
 				v_features.append(self.cached_features[f][id])
 			else:
 				e_features.append(self.cached_features[f][id])
-		v_features = zip(*v_features)
-		e_features = zip(*e_features)
+		v_features = list(zip(*v_features))
+		e_features = list(zip(*e_features))
 		return v_features, e_features
 
 	def prepare_feature_placeholder(self, N):
@@ -125,7 +125,7 @@ class Dataset:
 		v_features_B, e_features_B = self.prepare_feature_placeholder(N)
 		y = np.zeros(N, dtype='int64')
 
-		for instance_idx in xrange(N):
+		for instance_idx in range(N):
 			good, bad = next(self.cycled_train_pairs)
 			if randomize_dir:
 				good = good[:-1]+random.choice(['f','r'])
@@ -135,8 +135,8 @@ class Dataset:
 
 			label = random.random()>0.5
 			y[instance_idx] = label
-			for v_idx in xrange(4):
-				for v_fea_idx in xrange(len(v_good[v_idx])):
+			for v_idx in range(4):
+				for v_fea_idx in range(len(v_good[v_idx])):
 					if label:
 						v_features_A[v_idx][v_fea_idx][instance_idx] = v_good[v_idx][v_fea_idx]
 						v_features_B[v_idx][v_fea_idx][instance_idx] = v_bad[v_idx][v_fea_idx]
@@ -144,8 +144,8 @@ class Dataset:
 						v_features_B[v_idx][v_fea_idx][instance_idx] = v_good[v_idx][v_fea_idx]
 						v_features_A[v_idx][v_fea_idx][instance_idx] = v_bad[v_idx][v_fea_idx]
 
-			for e_idx in xrange(3):
-				for e_fea_idx in xrange(len(e_good[e_idx])):
+			for e_idx in range(3):
+				for e_fea_idx in range(len(e_good[e_idx])):
 					if label:
 						e_features_A[e_idx][e_fea_idx][instance_idx] = e_good[e_idx][e_fea_idx]
 						e_features_B[e_idx][e_fea_idx][instance_idx] = e_bad[e_idx][e_fea_idx]
@@ -155,7 +155,7 @@ class Dataset:
 
 		for features in [v_features_A, e_features_A, v_features_B, e_features_B]:
 			for feature in features:
-				for i in xrange(len(feature)):
+				for i in range(len(feature)):
 					feature[i] = Variable(torch.from_numpy(feature[i]))
 					if self.gpu:
 						feature[i] = feature[i].cuda()
@@ -180,7 +180,7 @@ class Dataset:
 		if return_id:
 			ids = [[], []]
 
-		for instance_idx in xrange(N):
+		for instance_idx in range(N):
 			good, bad = self.test_pairs[instance_idx]
 			if randomize_dir:
 				good = good[:-1]+random.choice(['f','r'])
@@ -197,8 +197,8 @@ class Dataset:
 				else:
 					ids[0].append(bad)
 					ids[1].append(good)
-			for v_idx in xrange(4):
-				for v_fea_idx in xrange(len(v_good[v_idx])):
+			for v_idx in range(4):
+				for v_fea_idx in range(len(v_good[v_idx])):
 					if label:
 						v_features_A[v_idx][v_fea_idx][instance_idx] = v_good[v_idx][v_fea_idx]
 						v_features_B[v_idx][v_fea_idx][instance_idx] = v_bad[v_idx][v_fea_idx]
@@ -206,8 +206,8 @@ class Dataset:
 						v_features_B[v_idx][v_fea_idx][instance_idx] = v_good[v_idx][v_fea_idx]
 						v_features_A[v_idx][v_fea_idx][instance_idx] = v_bad[v_idx][v_fea_idx]
 
-			for e_idx in xrange(3):
-				for e_fea_idx in xrange(len(e_good[e_idx])):
+			for e_idx in range(3):
+				for e_fea_idx in range(len(e_good[e_idx])):
 					if label:
 						e_features_A[e_idx][e_fea_idx][instance_idx] = e_good[e_idx][e_fea_idx]
 						e_features_B[e_idx][e_fea_idx][instance_idx] = e_bad[e_idx][e_fea_idx]
@@ -217,7 +217,7 @@ class Dataset:
 
 		for features in [v_features_A, e_features_A, v_features_B, e_features_B]:
 			for feature in features:
-				for i in xrange(len(feature)):
+				for i in range(len(feature)):
 					feature[i] = Variable(torch.from_numpy(feature[i]))
 					if self.gpu:
 						feature[i] = feature[i].cuda()
@@ -246,19 +246,19 @@ class Dataset:
 			v_first, e_first = self.get_features(first)
 			v_second, e_second = self.get_features(second)
 
-			for v_idx in xrange(4):
-				for v_fea_idx in xrange(len(v_first[v_idx])):
+			for v_idx in range(4):
+				for v_fea_idx in range(len(v_first[v_idx])):
 					v_features_A[v_idx][v_fea_idx][instance_idx] = v_first[v_idx][v_fea_idx]
 					v_features_B[v_idx][v_fea_idx][instance_idx] = v_second[v_idx][v_fea_idx]
 
-			for e_idx in xrange(3):
-				for e_fea_idx in xrange(len(e_first[e_idx])):
+			for e_idx in range(3):
+				for e_fea_idx in range(len(e_first[e_idx])):
 					e_features_A[e_idx][e_fea_idx][instance_idx] = e_first[e_idx][e_fea_idx]
 					e_features_B[e_idx][e_fea_idx][instance_idx] = e_second[e_idx][e_fea_idx]
 
 		for features in [v_features_A, e_features_A, v_features_B, e_features_B]:
 			for feature in features:
-				for i in xrange(len(feature)):
+				for i in range(len(feature)):
 					feature[i] = Variable(torch.from_numpy(feature[i]))
 					if self.gpu:
 						feature[i] = feature[i].cuda()

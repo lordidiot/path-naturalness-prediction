@@ -56,25 +56,27 @@ class ChainEncoder(nn.Module):
 		'''
 		v_features, e_features = input
 		v_encs = []
-		for i in xrange(len(v_features)):
+		for i in range(len(v_features)):
 			v_enc = None
-			for j in xrange(len(v_features[i])):
+			for j in range(len(v_features[i])):
 				fea_enc = self.v_fea_encs[j]
 				if v_enc is None:
 					v_enc = fea_enc(v_features[i][j])
 				else:
-					v_enc += fea_enc(v_features[i][j])
+					# https://discuss.pytorch.org/t/encounter-the-runtimeerror-one-of-the-variables-needed-for-gradient-computation-has-been-modified-by-an-inplace-operation/836
+					v_enc = v_enc + fea_enc(v_features[i][j])
 			v_enc = v_enc / len(v_features[i])
 			v_encs.append(v_enc)
 		e_encs = []
-		for i in xrange(len(e_features)):
+		for i in range(len(e_features)):
 			e_enc = None
-			for j in xrange(len(e_features[i])):
+			for j in range(len(e_features[i])):
 				fea_enc = self.e_fea_encs[j]
 				if e_enc is None:
 					e_enc = fea_enc(e_features[i][j])
 				else:
-					e_enc += fea_enc(e_features[i][j])
+					# https://discuss.pytorch.org/t/encounter-the-runtimeerror-one-of-the-variables-needed-for-gradient-computation-has-been-modified-by-an-inplace-operation/836
+					e_enc = e_enc + fea_enc(e_features[i][j])
 			e_enc = e_enc / len(e_features[i])
 			e_encs.append(e_enc)
 

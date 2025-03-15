@@ -50,7 +50,7 @@ def train(features, fea_len, split_frac, out_file, save=False, save_folder=None)
 	if isinstance(out_file, str):
 		out_file = open(out_file, 'w')
 	d = Dataset(features, split_frac, 1, gpu)
-	print 'defining architecture'
+	print('defining architecture')
 	enc = ChainEncoder(d.get_v_fea_len(), d.get_e_fea_len(), fea_len, 'last')
 	predictor = Predictor(fea_len)
 	loss = nn.NLLLoss()
@@ -61,10 +61,10 @@ def train(features, fea_len, split_frac, out_file, save=False, save_folder=None)
 
 	optimizer = optim.Adam(list(enc.parameters())+list(predictor.parameters()))
 
-	print 'training'
+	print('training')
 	test_v_features, test_e_features, test_A_pls, test_B_pls, test_y = d.get_test_pairs()
 	test_y = test_y.data.cpu().numpy()
-	for train_iter in xrange(12000):
+	for train_iter in range(12000):
 		v_features, e_features, A_pls, B_pls, y = d.get_train_pairs(100)
 		enc.zero_grad()
 		predictor.zero_grad()
