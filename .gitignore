@@ -109,3 +109,6 @@ venv.bak/
 # glove embeddings
 **/glove.*B.*d.*
 
+# Mac
+**/.DS_Store
+
