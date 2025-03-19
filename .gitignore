@@ -105,3 +105,7 @@ venv.bak/
 
 # api keys
 .openai_api_key
+
+# glove embeddings
+**/glove.*B.*d.*
+
