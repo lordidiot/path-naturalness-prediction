@@ -88,7 +88,28 @@ def main():
     # v_freq_freq
     # v_deg
     # v_sense
-    # e_vertexsim
+
+    # e_vertexsim (Edge ends similarity)
+    # Paper claims to use similarity, but actually uses distance
+    output_file = output_dir / 'e_vertexsim.pkl'
+    if not output_file.exists():
+        print(f"Saving edge ends similarity to {str(output_file)}...")
+        with open(output_dir / 'v_enc_dim300.pkl', 'rb') as f:
+            v_enc_glove = pickle.load(f)
+        e_vertexsim = {}
+        for path_id in v_enc_glove:
+            v = v_enc_glove[path_id]
+            esims = list(
+                1 - np.dot(v[i], v[i+1]) / (np.linalg.norm(v[i]) * np.linalg.norm(v[i+1])) \
+                for i in range(len(v)-1)
+            )
+            e_vertexsim[path_id] = esims
+        with open(output_file, 'wb') as f:
+            pickle.dump(e_vertexsim, f)
+    else:
+        print(f"Edge ends similarity {str(output_file)} already exist. Skipping.")
+
+
     # e_dir
     # e_rel
     # e_weightsource
