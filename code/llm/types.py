@@ -9,6 +9,14 @@ class Path(BaseModel):
     id: str  # eg: "38276f"
     short: str  # eg: "A <--RelatedTo--> B"
 
+    def __hash__(self):
+        return hash(self.id)
+    
+    def __eq__(self, other):
+        if not isinstance(other, Path):
+            return False
+        return self.id == other.id
+
 class Answer(BaseModel):
     path_a: Path
     path_b: Path
@@ -32,3 +40,7 @@ class Answer(BaseModel):
             raise ValueError(f"Expected 'explanation' key in JSON response: {response}")
         logger.debug(f"Loaded JSON data: {data}, path_a: {path_a}, path_b: {path_b}")
         return Answer(path_a=path_a, path_b=path_b, choice=data['choice'])
+
+class Prompting:
+    async def query(self, path_a: Path, path_b: Path) -> Answer:
+        raise NotImplementedError

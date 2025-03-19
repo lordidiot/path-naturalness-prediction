@@ -2,7 +2,7 @@ from openai import AsyncOpenAI
 import asyncio
 import dotenv
 
-from .types import Path, Answer
+from .types import Path, Answer, Prompting
 
 dotenv.load_dotenv()
 
@@ -19,7 +19,7 @@ Your response should be in JSON with the following format:
 }}
 """
 
-class OneShotPrompting:
+class OneShotPrompting(Prompting):
     def __init__(self, client: AsyncOpenAI):
         self.client = client
     
