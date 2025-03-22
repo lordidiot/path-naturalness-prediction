@@ -19,3 +19,13 @@ unidirectional_relations = set([
     "DefinedAs", "MannerOf", "HasContext", "EtymologicallyDerivedFrom", "CausesDesire",
     "MadeOf", "ReceivesAction", "ExternalURL",
 ])
+
+class BaseEdgeFeature:
+    def calculate(self, edge: tuple[str, str, str]) -> list[float]:
+        """
+        Example edge: ("A", "<--RelatedTo-->", "B")
+        """
+        raise NotImplementedError
+    
+    def calculate_batch(self, edges: list[tuple[str, str, str]]) -> list[list[float]]:
+        return [self.calculate(edge) for edge in tqdm(edges)]
