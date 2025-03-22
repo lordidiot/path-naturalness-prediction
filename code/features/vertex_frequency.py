@@ -4,7 +4,12 @@ import pickle
 from .base_feature import BaseVertexFeature, bidirectional_relations, unidirectional_relations
 
 class VertexFrequencyFeature(BaseVertexFeature):
+    def __init__(self):
+        self.cache: dict[str, int] = dict()
+
     def calculate(self, vertex: str) -> list[float]:
+        if vertex in self.cache:
+            return [self.cache[vertex]]
         offset = 0
         count = 0
         edges = set()
@@ -14,6 +19,7 @@ class VertexFrequencyFeature(BaseVertexFeature):
                 break
             count += count_incr
             offset += 1000
+        self.cache[vertex] = count
         return [count]
     
     def _get_count(self, vertex: str, offset: int, edges: set[tuple[str, str, str]]) -> int:
