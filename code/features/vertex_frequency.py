@@ -4,7 +4,7 @@ import pickle
 from .base_feature import BaseVertexFeature, bidirectional_relations, unidirectional_relations
 
 class VertexFrequencyFeature(BaseVertexFeature):
-    def calculate(self, vertex: str) -> float:
+    def calculate(self, vertex: str) -> list[float]:
         offset = 0
         count = 0
         edges = set()
@@ -14,7 +14,7 @@ class VertexFrequencyFeature(BaseVertexFeature):
                 break
             count += count_incr
             offset += 1000
-        return count
+        return [count]
     
     def _get_count(self, vertex: str, offset: int, edges: set[tuple[str, str, str]]) -> int:
         obj = requests.get(f"http://api.conceptnet.io/c/en/{vertex}?offset={offset}&limit=1000").json()
