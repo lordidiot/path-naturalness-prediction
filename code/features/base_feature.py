@@ -7,6 +7,15 @@ class BaseVertexFeature:
     def calculate_batch(self, vertices: list[str]) -> list[list[float]]:
         return [self.calculate(vertex) for vertex in tqdm(vertices)]
 
+relations = [
+    "RelatedTo", "Synonym", "Antonym", "DistinctFrom", "LocatedNear", "SimilarTo",
+    "EtymologicallyRelatedTo", "FormOf", "IsA", "PartOf", "HasA", "UsedFor", "CapableOf",
+    "AtLocation", "Causes", "HasSubevent", "HasFirstSubevent", "HasLastSubevent",
+    "HasPrerequisite", "HasProperty", "MotivatedByGoal", "ObstructedBy", "Desires",
+    "CreatedBy", "DerivedFrom", "SymbolOf", "DefinedAs", "MannerOf", "HasContext",
+    "EtymologicallyDerivedFrom", "CausesDesire", "MadeOf", "ReceivesAction", "ExternalURL",
+]
+
 bidirectional_relations = set([
     "RelatedTo", "Synonym", "Antonym", "DistinctFrom", "LocatedNear", "SimilarTo",
     "EtymologicallyRelatedTo",
