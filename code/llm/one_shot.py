@@ -1,22 +1,25 @@
 from openai import AsyncOpenAI
 import asyncio
 import dotenv
+from pydantic import BaseModel
+from typing import Literal
 
 from .types import Path, Answer, Prompting
 
 dotenv.load_dotenv()
+
+class Response(BaseModel):
+    choice: Literal["A", "B"]
+    explanation: str
+
+    def to_answer(self, path_a: Path, path_b: Path) -> Answer:
+        return Answer(path_a=path_a, path_b=path_b, choice=self.choice)
 
 QUESTION_TEMPLATE = """
 Which of the following paths connecting two concepts is the most natural?
 
 A) {A}
 B) {B}
-
-Your response should be in JSON with the following format:
-{{
-    "choice": "A" or "B"
-    "explanation": "Your explanation here"
-}}
 """
 
 class OneShotPrompting(Prompting):
@@ -25,12 +28,13 @@ class OneShotPrompting(Prompting):
     
     async def query(self, path_a: Path, path_b: Path) -> Answer:
         prompt = QUESTION_TEMPLATE.format(A=path_a.short, B=path_b.short)
-        completion = await self.client.chat.completions.create(
+        completion = await self.client.beta.chat.completions.parse(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
+            response_format=Response,
         )
-        response = completion.choices[0].message.content
-        return Answer.from_llm_response(response, path_a, path_b)
+        response = completion.choices[0].message.parsed
+        return response.to_answer(path_a, path_b)
 
 async def main():
     path_a = Path(
