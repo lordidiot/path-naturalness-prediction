@@ -2,6 +2,7 @@ import requests
 import pickle
 
 from .base_feature import BaseVertexFeature, bidirectional_relations, unidirectional_relations
+from .generate import run_vertex_feature_on_original
 
 class VertexFrequencyFeature(BaseVertexFeature):
     def __init__(self):
@@ -62,4 +63,11 @@ def main():
     print("actual", actual)
 
 if __name__ == "__main__":
-    main()
+    # main()
+    feature = VertexFrequencyFeature()
+    run_vertex_feature_on_original(vertex_feature=feature,
+                                   data_path="../data/science/paths.pkl",
+                                   out="../data/science/features/v_freq.pkl")
+    run_vertex_feature_on_original(vertex_feature=feature,
+                                   data_path="../data/money/paths.pkl",
+                                   out="../data/money/features/v_freq.pkl")
