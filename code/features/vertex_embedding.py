@@ -8,7 +8,7 @@ from .generate import run_vertex_feature_on_original, enumerate_vertices
 GLOVE_PATH = '../data/glove.42B.300d.txt' # https://nlp.stanford.edu/data/glove.42B.300d.zip
 FEATURE_NAME = 'v_enc_dim300'
 
-class VertexEmbedding(BaseVertexFeature):
+class VertexEmbeddingFeature(BaseVertexFeature):
     def __init__(self, vertices: set[str]):
         self.glove_embeddings = self._cache_glove_embeddings(vertices)
     
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     money_data_path = "../data/money/paths.pkl"
     science_vertices = enumerate_vertices(science_data_path)
     money_vertices = enumerate_vertices(money_data_path)
-    feature = VertexEmbedding(science_vertices.union(money_vertices))
+    feature = VertexEmbeddingFeature(science_vertices.union(money_vertices))
     run_vertex_feature_on_original(vertex_feature=feature,
                                    data_path=science_data_path,
                                    out=f"../data/science/features/{FEATURE_NAME}.pkl")
