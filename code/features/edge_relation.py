@@ -36,3 +36,6 @@ if __name__ == "__main__":
     run_edge_feature_on_original(feature,
                                  "../data/science/paths.pkl",
                                  "../data/science/features/e_rel.pkl")
+    run_edge_feature_on_original(feature,
+                                 "../data/money/paths.pkl",
+                                 "../data/money/features/e_rel.pkl")
