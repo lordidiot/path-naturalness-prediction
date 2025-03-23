@@ -11,7 +11,7 @@ FEATURE_NAME = 'v_enc_dim300'
 class VertexEmbeddingFeature(BaseVertexFeature):
     def __init__(self, vertices: set[str]):
         self.glove_embeddings = self._cache_glove_embeddings(vertices)
-    
+
     def _cache_glove_embeddings(self, words: set[str]):
         glove_embeddings = {}
         with open(GLOVE_PATH, 'r') as f:
@@ -23,7 +23,7 @@ class VertexEmbeddingFeature(BaseVertexFeature):
 
     def calculate(self, vertex: str) -> np.ndarray:
         return self.glove_embeddings[vertex]
-    
+
 
 if __name__ == "__main__":
     science_data_path = "../data/science/paths.pkl"
