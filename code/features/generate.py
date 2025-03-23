@@ -15,6 +15,23 @@ def _get_logger():
     logger.propagate = False
     return logger
 
+def enumerate_vertices(data_path: str) -> set[str]:
+    """
+    Enumerates all the vertices in the dataset.
+
+    Parameters
+    ---
+    data_path: str
+        The path to the original dataset. Example: `../data/science/paths.pkl`
+    """
+    with open(data_path, "rb") as f:
+        paths = pickle.load(f)
+    vertices = set()
+    for path in paths.values():
+        path_string = path['forward']['short']
+        vertices.update(item.lower() for i, item in enumerate(path_string.split(" ")) if i % 2 == 0)
+    return vertices
+
 def run_vertex_feature_on_original(vertex_feature: BaseVertexFeature,
                                    data_path: str,
                                    out: str) -> None:
