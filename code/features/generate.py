@@ -1,7 +1,19 @@
 import pickle
 from tqdm import tqdm
+import logging
 
 from .base_feature import BaseVertexFeature, BaseEdgeFeature
+
+def _get_logger():
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    file_handler = logging.FileHandler(f"{__name__}.log")
+    file_handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    logger.propagate = False
+    return logger
 
 def run_vertex_feature_on_original(vertex_feature: BaseVertexFeature,
                                    data_path: str,
@@ -60,6 +72,10 @@ def run_edge_feature_on_original(edge_feature: BaseEdgeFeature,
     `edge_feature.calculate_batch(path)`, where `path`
     is the path with the corresponding ID and direction.
 
+    Note that this function skips the paths that ran into
+    an exception during the call to `edge_feature.calculate_batch(path)`.
+    Check the error log `features.generate.log` to see the exception details.
+
     Parameters
     ---
     edge_feature: BaseEdgeFeature
@@ -69,6 +85,7 @@ def run_edge_feature_on_original(edge_feature: BaseEdgeFeature,
     out: str
         The path to save the generated data. Example: `../data/science/features/e_dir.pkl`
     """
+    logger = _get_logger()
     with open(data_path, "rb") as f:
         paths = pickle.load(f)
     data: dict[str, list[list[float]]] = dict()
@@ -79,7 +96,12 @@ def run_edge_feature_on_original(edge_feature: BaseEdgeFeature,
             path_string = path[direction]['short']
             items = path_string.split(" ")
             edges = [(items[i], items[i + 1], items[i + 2]) for i in range(0, len(items) - 2, 2)]
-            values = edge_feature.calculate_batch(edges)
+            try:
+                values = edge_feature.calculate_batch(edges)
+            except Exception as e:
+                logger.info(f"Error at key: {key}")
+                logger.info(e, exc_info=True)
+                continue
             data[key + direction[0]] = values
     with open(out, "wb") as f:
         pickle.dump(data, f)
