@@ -4,7 +4,7 @@ import pickle
 from .base_feature import BaseVertexFeature, bidirectional_relations, unidirectional_relations
 from .generate import run_vertex_feature_on_original
 
-class VertexFrequencyFeature(BaseVertexFeature):
+class VertexDegreeFeature(BaseVertexFeature):
     def __init__(self):
         self.cache: dict[str, int] = dict()
 
@@ -48,7 +48,7 @@ class VertexFrequencyFeature(BaseVertexFeature):
 
 
 def main():
-    feature = VertexFrequencyFeature()
+    feature = VertexDegreeFeature()
     with open("../data/science/paths.pkl", "rb") as f:
         paths = pickle.load(f)
     with open("science/features/v_deg.pkl", "rb") as f:
@@ -64,10 +64,10 @@ def main():
 
 if __name__ == "__main__":
     # main()
-    feature = VertexFrequencyFeature()
+    feature = VertexDegreeFeature()
     run_vertex_feature_on_original(vertex_feature=feature,
                                    data_path="../data/science/paths.pkl",
-                                   out="../data/science/features/v_freq.pkl")
+                                   out="../data/science/features/v_deg.pkl")
     run_vertex_feature_on_original(vertex_feature=feature,
                                    data_path="../data/money/paths.pkl",
-                                   out="../data/money/features/v_freq.pkl")
+                                   out="../data/money/features/v_deg.pkl")
