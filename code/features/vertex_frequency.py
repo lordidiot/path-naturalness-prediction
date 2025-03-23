@@ -14,18 +14,18 @@ class VertexFrequencyFeature(BaseVertexFeature):
         offset = 0
         count = 0
         edges = set()
-        while True:
-            count_incr = self._get_count(vertex, offset, edges)
-            if count_incr == 0:
-                break
+        should_continue = True
+        while should_continue:
+            should_continue, count_incr = self._get_count(vertex, offset, edges)
             count += count_incr
             offset += 1000
         self.cache[vertex] = count
         return [count]
     
-    def _get_count(self, vertex: str, offset: int, edges: set[tuple[str, str, str]]) -> int:
+    def _get_count(self, vertex: str, offset: int, edges: set[tuple[str, str, str]]) -> tuple[bool, int]:
         obj = requests.get(f"http://api.conceptnet.io/c/en/{vertex}?offset={offset}&limit=1000").json()
         count = 0
+        should_continue = len(obj["edges"]) > 0
         for edge in obj["edges"]:
             start = edge["start"]["@id"].strip("/").split("/")
             end = edge["end"]["@id"].strip("/").split("/")
@@ -44,7 +44,7 @@ class VertexFrequencyFeature(BaseVertexFeature):
             if start[1] != "en" or end[1] != "en":
                 continue
             count += 1
-        return count
+        return should_continue, count
 
 
 def main():
