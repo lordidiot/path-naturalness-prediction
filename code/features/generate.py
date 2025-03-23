@@ -33,6 +33,10 @@ def run_vertex_feature_on_original(vertex_feature: BaseVertexFeature,
     `vertex_feature.calculate_batch(path)`, where `path`
     is the path with the corresponding ID and direction.
 
+    Note that this function skips the paths that ran into
+    an exception during the call to `vertex_feature.calculate_batch(path)`.
+    Check the error log `features.generate.log` to see the exception details.
+
     Parameters
     ---
     vertex_feature: BaseVertexFeature
@@ -42,6 +46,7 @@ def run_vertex_feature_on_original(vertex_feature: BaseVertexFeature,
     out: str
         The path to save the generated data. Example: `../data/science/features/v_freq.pkl`
     """
+    logger = _get_logger()
     with open(data_path, "rb") as f:
         paths = pickle.load(f)
     data: dict[str, list[list[float]]] = dict()
@@ -49,7 +54,12 @@ def run_vertex_feature_on_original(vertex_feature: BaseVertexFeature,
         for direction in ['forward', 'reverse']:
             path_string = path[direction]['short']
             words = [item.lower() for i, item in enumerate(path_string.split(" ")) if i % 2 == 0]
-            values = vertex_feature.calculate_batch(words)
+            try:
+                values = vertex_feature.calculate_batch(words)
+            except Exception as e:
+                logger.error(f"Error at key: {key}")
+                logger.error(e, exc_info=True)
+                continue
             data[key + direction[0]] = values
     with open(out, "wb") as f:
         pickle.dump(data, f)
