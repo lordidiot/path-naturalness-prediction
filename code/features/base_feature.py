@@ -1,11 +1,9 @@
-from tqdm import tqdm
-
 class BaseVertexFeature:
     def calculate(self, vertex: str) -> list[float]:
         raise NotImplementedError
     
     def calculate_batch(self, vertices: list[str]) -> list[list[float]]:
-        return [self.calculate(vertex) for vertex in tqdm(vertices)]
+        return [self.calculate(vertex) for vertex in vertices]
 
 relations = [
     "RelatedTo", "Synonym", "Antonym", "DistinctFrom", "LocatedNear", "SimilarTo",

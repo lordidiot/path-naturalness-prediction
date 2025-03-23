@@ -50,7 +50,9 @@ def run_vertex_feature_on_original(vertex_feature: BaseVertexFeature,
     with open(data_path, "rb") as f:
         paths = pickle.load(f)
     data: dict[str, list[list[float]]] = dict()
-    for key, path in paths.items():
+    keys = list(paths.keys())
+    for key in tqdm(keys):
+        path = paths[key]
         for direction in ['forward', 'reverse']:
             path_string = path[direction]['short']
             words = [item.lower() for i, item in enumerate(path_string.split(" ")) if i % 2 == 0]
