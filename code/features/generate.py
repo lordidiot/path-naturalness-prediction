@@ -1,6 +1,7 @@
 import pickle
+from tqdm import tqdm
 
-from .base_feature import BaseVertexFeature
+from .base_feature import BaseVertexFeature, BaseEdgeFeature
 
 def run_vertex_feature_on_original(vertex_feature: BaseVertexFeature,
                                    data_path: str,
@@ -40,3 +41,46 @@ def run_vertex_feature_on_original(vertex_feature: BaseVertexFeature,
             data[key + direction[0]] = values
     with open(out, "wb") as f:
         pickle.dump(data, f)
+
+def run_edge_feature_on_original(edge_feature: BaseEdgeFeature,
+                                 data_path: str,
+                                 out: str) -> None:
+    """
+    Generates data for an edge feature on the original dataset.
+    The generated data is in pickle format and has the following type:
+
+    ```
+    dict[str, list[list[float]]]
+    ```
+
+    It is a dictionary, with each key being an ID of a path
+    in the data path file, appended by the direction, `f` or `r`.
+
+    The value is the value of the feature as calculated by
+    `edge_feature.calculate_batch(path)`, where `path`
+    is the path with the corresponding ID and direction.
+
+    Parameters
+    ---
+    edge_feature: BaseEdgeFeature
+        The edge feature to generate data for.
+    data_path: str
+        The path to the original dataset. Example: `../data/science/paths.pkl`
+    out: str
+        The path to save the generated data. Example: `../data/science/features/e_dir.pkl`
+    """
+    with open(data_path, "rb") as f:
+        paths = pickle.load(f)
+    data: dict[str, list[list[float]]] = dict()
+    keys = list(paths.keys())
+    for key in tqdm(keys):
+        path = paths[key]
+        for direction in ['forward', 'reverse']:
+            path_string = path[direction]['short']
+            items = path_string.split(" ")
+            edges = [(items[i], items[i + 1], items[i + 2]) for i in range(0, len(items) - 2, 2)]
+            values = edge_feature.calculate_batch(edges)
+            data[key + direction[0]] = values
+    with open(out, "wb") as f:
+        pickle.dump(data, f)
+

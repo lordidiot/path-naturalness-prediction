@@ -1,6 +1,7 @@
 import pickle
 
 from .base_feature import BaseEdgeFeature
+from .generate import run_edge_feature_on_original
 
 class EdgeDirectionFeature(BaseEdgeFeature):
     def calculate(self, edge: tuple[str, str, str]) -> list[float]:
@@ -35,4 +36,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    feature = EdgeDirectionFeature()
+    run_edge_feature_on_original(feature,
+                                 "../data/science/paths.pkl",
+                                 "../data/science/features/e_dir.pkl")

@@ -37,4 +37,4 @@ class BaseEdgeFeature:
         raise NotImplementedError
     
     def calculate_batch(self, edges: list[tuple[str, str, str]]) -> list[list[float]]:
-        return [self.calculate(edge) for edge in tqdm(edges)]
+        return [self.calculate(edge) for edge in edges]
