@@ -37,7 +37,8 @@ class SenseScore:
                 sense_words = synonyms.union(is_a_words).union(has_a_words).union(definition_words)
                 # remove "phrases", not too sure how to handle phrases (with _)
                 # remove non-words
-                sense_words = set([sense_word for sense_word in sense_words
+                # lower the word because glove stores proper nouns in lower case
+                sense_words = set([sense_word.lower() for sense_word in sense_words
                                    if sense_word.isalnum()])
                 # remove the word itself
                 if word in sense_words:
