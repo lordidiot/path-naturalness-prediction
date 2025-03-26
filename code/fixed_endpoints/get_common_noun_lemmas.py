@@ -2,7 +2,7 @@
 
 words = []
 
-with open('data/fixed-endpoints/words.txt', 'r') as f:
+with open('../data/fixed-endpoints/words.txt', 'r') as f:
     lines = f.readlines()
     prev = ''
     for line in lines[9:]:
@@ -18,7 +18,7 @@ with open('data/fixed-endpoints/words.txt', 'r') as f:
     f.close()
 
 print(len(words))
-with open('data/fixed-endpoints/common_noun_lemmas.txt', 'w') as f:
+with open('../data/fixed-endpoints/common_noun_lemmas.txt', 'w') as f:
     for word in words:
         f.write(word.replace('-', '_') + '\n')
 

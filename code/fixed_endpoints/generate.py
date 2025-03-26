@@ -12,7 +12,7 @@ CONCEPT_NET_URL_PREFIX = URL + ID_PREFIX
 BIDIRECTIONAL_REL_ID = ['/r/RelatedTo', '/r/Synonym', '/r/Antonym', '/r/DistinctFrom', '/r/LocatedNear', '/r/SimilarTo', '/r/EtymologicallyRelatedTo']
 
 common_noun_lemmas = []
-with open('fixed_endpoints/common_noun_lemmas.txt', 'r') as f:
+with open('../data/fixed_endpoints/common_noun_lemmas.txt', 'r') as f:
     for line in f.readlines()[:1000]:
         common_noun_lemmas.append(line.strip())
     f.close()
@@ -200,7 +200,7 @@ def generate_from_science():
 
     # Attempt to use same 100 initial nodes as the baseline
     # Did not work because 0 partner were found in the subgraph
-    # with open('fixed_endpoints/science_initial_words.txt', 'r') as f:
+    # with open('../data/fixed_endpoints/science_initial_words.txt', 'r') as f:
     #     for line in f.readlines():
     #         science_initial_nodes.add(get_node(line.strip().lower()))
     #     f.close()
@@ -232,11 +232,11 @@ def generate_from_money():
 
 if __name__ == '__main__':
     science_data = generate_from_science()
-    with open('fixed_endpoints/science_paths_fixed_endpoints.pkl', 'wb') as f:
+    with open('../data/fixed_endpoints/science_paths_fixed_endpoints.pkl', 'wb') as f:
         pickle.dump(science_data, f)
         f.close()
     
     money_data = generate_from_money()
-    with open('fixed_endpoints/money_paths_fixed_endpoints.pkl', 'wb') as f:
+    with open('../data/fixed_endpoints/money_paths_fixed_endpoints.pkl', 'wb') as f:
         pickle.dump(money_data, f)
         f.close()
