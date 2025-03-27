@@ -45,7 +45,9 @@ class SenseScore:
                     sense_words.remove(word)
                 # add the sense words to vocab
                 self.vocab = self.vocab.union(sense_words)
-                senses.append(sense_words)
+                # TODO: Not sure if this is a hot fix or a good idea
+                if sense_words:
+                    senses.append(sense_words)
             word_senses[word] = senses
         return word_senses
     
