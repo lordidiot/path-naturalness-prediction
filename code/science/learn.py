@@ -52,6 +52,8 @@ def train(features, fea_len, split_frac, out_file):
 				'ckpt/%i_encoder.model'%train_iter)
 			torch.save(predictor.state_dict(), 
 				'ckpt/%i_predictor.model'%train_iter)
+		torch.save(enc.state_dict(), 'ckpt/final_encoder.model')
+		torch.save(predictor.state_dict(), 'ckpt/final_predictor.model')
 	out_file.close()
 
 gpu = False
