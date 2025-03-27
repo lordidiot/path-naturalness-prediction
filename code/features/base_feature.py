@@ -12,6 +12,8 @@ relations = [
     "HasPrerequisite", "HasProperty", "MotivatedByGoal", "ObstructedBy", "Desires",
     "CreatedBy", "DerivedFrom", "SymbolOf", "DefinedAs", "MannerOf", "HasContext",
     "EtymologicallyDerivedFrom", "CausesDesire", "MadeOf", "ReceivesAction", "ExternalURL",
+    # Deprecated relations, but still need to include
+    "NotDesires",
 ]
 
 bidirectional_relations = set([
@@ -25,6 +27,8 @@ unidirectional_relations = set([
     "MotivatedByGoal", "ObstructedBy", "Desires", "CreatedBy", "DerivedFrom", "SymbolOf",
     "DefinedAs", "MannerOf", "HasContext", "EtymologicallyDerivedFrom", "CausesDesire",
     "MadeOf", "ReceivesAction", "ExternalURL",
+    # Deprecated relations, but still need to include
+    "NotDesires",
 ])
 
 class BaseEdgeFeature:
