@@ -21,7 +21,7 @@ all_feature_lengths = {'v_enc_onehot': 100,
 					   'v_sense': 1,
 					   'e_vertexsim': 1,
 					   'e_dir': 3,
-					   'e_rel': 46,
+					   'e_rel': 35,
 					   'e_weight': 1,
 					   'e_source': 6,
 					   'e_weightsource': 6,
@@ -39,7 +39,7 @@ class Dataset:
 		for f in feature_names:
 			print('loading '+f)
 			self.cached_features[f] = pickle.load(
-				open('features/%s.pkl'%f, 'rb'), encoding='latin1')
+				open('../../data/science/features/%s.pkl'%f, 'rb'), encoding='latin1')
 		sampled_problems = pickle.load(open(
 			'../../data/science/paths.pkl', 'rb'))
 		self.texts = dict()

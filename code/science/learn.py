@@ -55,8 +55,9 @@ def train(features, fea_len, split_frac, out_file):
 	out_file.close()
 
 gpu = False
+# Removed 'e_srank_rel', 'e_trank_rel'
 features = ['v_enc_dim300', 'v_freq_freq', 'v_deg', 'v_sense', 'e_vertexsim', 
-	'e_dir', 'e_rel', 'e_weightsource', 'e_srank_rel', 'e_trank_rel', 'e_sense']
+	'e_dir', 'e_rel', 'e_weightsource', 'e_sense']
 feature_len = 20
 split_frac = 0.8
 train(features, feature_len, split_frac, 'train.log')
