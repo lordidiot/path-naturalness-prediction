@@ -1,12 +1,29 @@
+import re
 import sys
 import json
 import pickle
 from pathlib import Path as _Path
 from openai import AsyncOpenAI, OpenAI
 from pprint import pprint
+import uuid
 
 from .types import Path
 from .one_shot import OneShotPrompting
+from .get_data import QUESTION_TEMPLATE, ANSWER_PATTERN
+
+def get_query_request_data(path_a: Path, path_b: Path) -> dict:
+    prompt = QUESTION_TEMPLATE.format(A=path_a.short, B=path_b.short)
+    data = {
+        "url": "/v1/chat/completions",
+        "custom_id": path_a.id + '_' + path_b.id + '_' + uuid.uuid4().hex[:16],
+        "method": "POST",
+        "body": {
+            "messages": [{"role": "user", "content": prompt}],
+            "model": "gpt-4o-mini",
+            "max_tokens": 2000,
+        }
+    }
+    return data
 
 def convert_batch_output_to_answers(batch_output_path: _Path, answers_path: _Path):
     with open(batch_output_path, 'r') as batch:
@@ -14,7 +31,9 @@ def convert_batch_output_to_answers(batch_output_path: _Path, answers_path: _Pat
             for line in batch:
                 response = json.loads(line)
                 path_a_id, path_b_id, _ = response['custom_id'].split('_')
-                choice = json.loads(response['response']['body']['choices'][0]['message']['content'])['choice']
+                # choice = json.loads(response['response']['body']['choices'][0]['message']['content'])['choice']
+                match = re.search(ANSWER_PATTERN, response['response']['body']['choices'][0]['message']['content'])
+                choice = match.group(1) if match else None
                 out.write(f"{path_a_id}_{path_b_id}_{path_a_id if choice == 'A' else path_b_id}\n")
 
 def get_paths_from_answer(answer: str, paths: dict[str, any]) -> tuple[Path, Path]:
@@ -47,14 +66,14 @@ def main():
         print(f"{input_path} already exists. Skipping generation.")
     else:
         print("Generating input file...")
-        prompter = OneShotPrompting(AsyncOpenAI())
+        # prompter = OneShotPrompting(AsyncOpenAI())
         with open(answers_path, 'r') as answers:
             with open(input_path, 'w') as out:
                 for line in answers:
                     sys.stdout.write('.')
                     sys.stdout.flush()
                     path_a, path_b = get_paths_from_answer(line, paths)
-                    out.write(json.dumps(prompter.get_query_request_data(path_a, path_b)) + '\n')
+                    out.write(json.dumps(get_query_request_data(path_a, path_b)) + '\n')
 
     if True:
         client = OpenAI()
