@@ -12,7 +12,7 @@ from multiprocessing import Pool
 def train(features, fea_len, split_frac, out_file):
 	if isinstance(out_file, str):
 		out_file = open(out_file, 'w')
-	d = Dataset(features, split_frac, gpu)
+	d = Dataset('science', features, split_frac, gpu)
 	print('defining architecture')
 	enc = ChainEncoder(d.get_v_fea_len(), d.get_e_fea_len(), fea_len, 'last')
 	predictor = Predictor(fea_len)

@@ -32,16 +32,16 @@ all_feature_lengths = {'v_enc_onehot': 100,
 					   'e_sense': 1}
 
 class Dataset:
-	def __init__(self, feature_names, train_test_split_fraction, gpu):
+	def __init__(self, dataset_name, feature_names, train_test_split_fraction, gpu):
 		self.feature_names = feature_names
 		self.cached_features = dict()
 		self.gpu = gpu
 		for f in feature_names:
 			print('loading '+f)
 			self.cached_features[f] = pickle.load(
-				open('../../data/science/features/%s.pkl'%f, 'rb'), encoding='latin1')
+				open(f'../../data/{dataset_name}/features/{f}.pkl', 'rb'), encoding='latin1')
 		sampled_problems = pickle.load(open(
-			'../../data/science/paths.pkl', 'rb'))
+			f'../../data/{dataset_name}/paths.pkl', 'rb'))
 		self.texts = dict()
 		print('loading problem plain texts')
 		for id_num in sampled_problems:
@@ -51,7 +51,7 @@ class Dataset:
 			self.texts[id_num+'r'] = r_short
 		print('loading labeled pairs')
 		self.all_pairs = [] # list of id tuples (good, bad)
-		for l in open('../../data/science/answers.txt'):
+		for l in open(f'../../data/{dataset_name}/openai_answers.txt'):
 			first, second, good = l.strip().split('_')
 			if first==good:
 				bad = second
