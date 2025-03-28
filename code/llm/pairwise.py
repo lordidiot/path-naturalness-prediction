@@ -72,7 +72,6 @@ async def run_money(range: tuple[int, int], interval: int = 10):
 
 
 if __name__ == "__main__":
-    # Ranges run: (0, 200)
-    # Ranges half-run: (1000, 1200)
+    # Ranges run: (0, 200), (1000, 1200)
     task = run_science(range=(1000, 1200))
     asyncio.run(task)
