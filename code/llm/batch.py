@@ -8,6 +8,15 @@ from pprint import pprint
 from .types import Path
 from .one_shot import OneShotPrompting
 
+def convert_batch_output_to_answers(batch_output_path: _Path, answers_path: _Path):
+    with open(batch_output_path, 'r') as batch:
+        with open(answers_path, 'w') as out:
+            for line in batch:
+                response = json.loads(line)
+                path_a_id, path_b_id, _ = response['custom_id'].split('_')
+                choice = json.loads(response['response']['body']['choices'][0]['message']['content'])['choice']
+                out.write(f"{path_a_id}_{path_b_id}_{path_a_id if choice == 'A' else path_b_id}\n")
+
 def get_paths_from_answer(answer: str, paths: dict[str, any]) -> tuple[Path, Path]:
     a_id, b_id, _ = answer.strip().split('_')
     path_a = Path(
@@ -46,7 +55,7 @@ def main():
                     sys.stdout.flush()
                     path_a, path_b = get_paths_from_answer(line, paths)
                     out.write(json.dumps(prompter.get_query_request_data(path_a, path_b)) + '\n')
-    
+
     if True:
         client = OpenAI()
         if batch_input_file_id is None:
@@ -54,7 +63,7 @@ def main():
                 batch_input_file = client.files.create(file=f, purpose="batch")
                 batch_input_file_id = batch_input_file.id
                 print(f"Batch input file created: {batch_input_file}")
-        
+
         job = client.batches.create(
             input_file_id=batch_input_file_id,
             endpoint="/v1/chat/completions",
@@ -65,8 +74,6 @@ def main():
         )
         print("Batch job:")
         pprint(job)
-
-
 
 
 if __name__ == '__main__':

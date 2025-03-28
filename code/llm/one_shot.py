@@ -1,3 +1,4 @@
+import uuid
 from openai import AsyncOpenAI, OpenAI
 import asyncio
 import dotenv
@@ -42,7 +43,7 @@ class OneShotPrompting(Prompting):
         client = OpenAI()
         data = {
             "url": "/v1/chat/completions",
-            "custom_id": path_a.id + '_' + path_b.id,
+            "custom_id": path_a.id + '_' + path_b.id + '_' + uuid.uuid4().hex[:16],
             "method": "POST",
         }
 
