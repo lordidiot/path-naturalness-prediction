@@ -17,13 +17,13 @@ def get_glove_features(vtxs: set[str]):
     
     return vtx_emb, vtx_freq
         
-def get_vertex_features(data_path: str, vtxs: set[str]):
+def get_vertex_features(vtxs: set[str], features_folder: str):
     vtx_emb, vtx_freq = get_glove_features(vtxs)
     
-    with open(data_path + 'vertex_embedding.pkl', 'wb') as file:
+    with open(features_folder + 'vertex_embedding.pkl', 'wb') as file:
         pickle.dump(vtx_emb, file)
         
-    with open(data_path + 'vertex_frequency.pkl', 'wb') as file:
+    with open(features_folder + 'vertex_frequency.pkl', 'wb') as file:
         pickle.dump(vtx_freq, file)
     
     

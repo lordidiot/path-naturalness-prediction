@@ -3,6 +3,8 @@ import sys
 from .utils import load_pickle
 from vertex_features import get_vertex_features
 
+DATA_FOLDER = "../../data/fixed_endpoints/"
+
 def get_vertexes(path_data_filepath: str):
     data = load_pickle(path_data_filepath)
     vtxs = set()
@@ -13,11 +15,13 @@ def get_vertexes(path_data_filepath: str):
     
 def main(args):
     if len(args) == 0:
-        path_data_filepath = "../../data/fixed_endpoints/science_paths_fixed_endpoints.pkl"
+        dataset = "science"
     else:
-        path_data_filepath = args[0]
+        dataset = args[0]
+    path_data_filepath = DATA_FOLDER + f"{dataset}_paths_fixed_endpoints.pkl"
+    features_folder = DATA_FOLDER + f"{dataset}_features/"
     vertexs = get_vertexes(path_data_filepath)
-    get_vertex_features(vertexs)
+    get_vertex_features(vertexs, features_folder)
 
 if __name__ == "__main__":
     main(sys.argv)
