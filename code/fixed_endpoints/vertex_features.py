@@ -5,7 +5,7 @@ import requests
 GLOVE_PATH = "../data/glove.42B.300d.txt"
 LIMIT = 1000
 
-def get_glove_features(vtxs: set[str]):
+def glove_features(vtxs: set[str]):
     vtx_emb = {}
     vtx_freq = {}
     
@@ -20,7 +20,7 @@ def get_glove_features(vtxs: set[str]):
     return vtx_emb, vtx_freq
 
 # number of neighbours with no duplicates (even if there are multiple relations)
-def get_vertex_degree(vtxs: set[str]):
+def vertex_degree(vtxs: set[str]):
     vtx_deg = {}
     
     for vtx in vtxs:
@@ -50,7 +50,7 @@ def get_vertex_degree(vtxs: set[str]):
     return vtx_deg
         
 def get_vertex_features(vtxs: set[str]):
-    vtx_deg = get_vertex_degree(vtxs)
-    vtx_emb, vtx_freq = get_glove_features(vtxs)
+    vtx_deg = vertex_degree(vtxs)
+    vtx_emb, vtx_freq = glove_features(vtxs)
     return vtx_deg, vtx_emb, vtx_freq
     
