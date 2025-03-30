@@ -49,19 +49,8 @@ def get_vertex_degree(vtxs: set[str]):
         
     return vtx_deg
         
-        
-        
-def get_vertex_features(vtxs: set[str], features_folder: str):
+def get_vertex_features(vtxs: set[str]):
     vtx_deg = get_vertex_degree(vtxs)
     vtx_emb, vtx_freq = get_glove_features(vtxs)
-    
-    with open(features_folder + "vertex_degree.pkl", "wb") as file:
-        pickle.dump(vtx_deg, file)
-        
-    with open(features_folder + "vertex_embedding.pkl", "wb") as file:
-        pickle.dump(vtx_emb, file)
-        
-    with open(features_folder + "vertex_frequency.pkl", "wb") as file:
-        pickle.dump(vtx_freq, file)
-    
+    return vtx_deg, vtx_emb, vtx_freq
     
