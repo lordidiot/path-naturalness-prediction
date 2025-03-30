@@ -23,7 +23,7 @@ def get_vertexes_and_edges(path_data_filepath: str):
         
     return vtxs, edges
 
-def save_features(features_folder, vtx_deg, vtx_emb, vtx_freq, edge_sim):
+def save_features(features_folder, vtx_deg, vtx_emb, vtx_freq, edge_sim, edge_dir, edge_rel):
     with open(features_folder + "vertex_degree.pkl", "wb") as file:
         pickle.dump(vtx_deg, file)
         
@@ -37,20 +37,24 @@ def save_features(features_folder, vtx_deg, vtx_emb, vtx_freq, edge_sim):
         pickle.dump(edge_sim, file)
 
     with open(features_folder + "edge_direction.pkl", "wb") as file:
-        pickle.dump(edge_sim, file)
+        pickle.dump(edge_dir, file)
     
+    with open(features_folder + "edge_relation.pkl", "wb") as file:
+        pickle.dump(edge_rel, file)
 
 def main(args):
     if len(args) == 0:
+        # default
         dataset = "science"
     else:
         dataset = args[0]
     path_data_filepath = DATA_FOLDER + f"{dataset}_paths_fixed_endpoints.pkl"
     features_folder = DATA_FOLDER + f"{dataset}_features/"
+    
     vertexs, edges = get_vertexes_and_edges(path_data_filepath)
     vtx_deg, vtx_emb, vtx_freq = get_vertex_features(vertexs)
-    edge_sim, edge_dir = get_edge_features(edges, vtx_emb)
-    save_features(features_folder, vtx_deg, vtx_emb, vtx_freq, edge_sim, edge_dir)
+    edge_sim, edge_dir, edge_rel = get_edge_features(edges, vtx_emb)
+    save_features(features_folder, vtx_deg, vtx_emb, vtx_freq, edge_sim, edge_dir, edge_rel)
 
 if __name__ == "__main__":
     main(sys.argv)
