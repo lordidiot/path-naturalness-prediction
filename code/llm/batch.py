@@ -27,7 +27,7 @@ def get_query_request_data(path_a: Path, path_b: Path) -> dict:
 
 def convert_batch_output_to_answers(batch_output_path: _Path, answers_path: _Path):
     with open(batch_output_path, 'r') as batch:
-        with open(answers_path, 'w') as out:
+        with open(answers_path, 'a') as out:
             for line in batch:
                 response = json.loads(line)
                 path_a_id, path_b_id, _ = response['custom_id'].split('_')

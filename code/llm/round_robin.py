@@ -38,7 +38,7 @@ async def run(data_file: str,
             paths = [Path(id=path.id, short=path.short()) for path in paths]
             score = await rr.run(paths)
             scores.update(score)
-    with open(out, "w") as f:
+    with open(out, "a") as f:
         for path, score in scores.items():
             f.write(f"{path.id}_{score:.5f}\n")
 
@@ -56,6 +56,6 @@ async def run_money(clips: list[tuple[int, int]]):
 
 
 if __name__ == "__main__":
-    clips = [(0, 200), (1000, 1200)]
+    clips = [(200, 400)]
     asyncio.run(run_science(clips))
     asyncio.run(run_money(clips))
