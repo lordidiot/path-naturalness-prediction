@@ -1,12 +1,17 @@
 import sys
 import pickle
 
-from edge_features import get_edge_features
-from vertex_features import get_vertex_features
+from .edge_features import get_edge_features
+from .vertex_features import get_vertex_features
 
-from .utils import load_pickle
+from .types import Path
 
-DATA_FOLDER = "../../data/fixed_endpoints/"
+DATA_FOLDER = "../data/fixed_endpoints/"
+
+def load_pickle(filename) -> dict[tuple[str, str], list[Path]]:
+    with open(filename, 'rb') as f:
+        data: dict[tuple[str, str], list[Path]] = pickle.load(f)
+        return data
 
 def get_vertexes_and_edges(path_data_filepath: str):
     data = load_pickle(path_data_filepath)
@@ -47,14 +52,13 @@ def save_features(features_folder, vtx_deg, vtx_emb, vtx_freq,
         pickle.dump(edge_prov, file)
 
 def main(args):
-    if len(args) == 0:
+    if len(args) <= 1:
         # default
         dataset = "science"
     else:
-        dataset = args[0]
+        dataset = args[1]
     path_data_filepath = DATA_FOLDER + f"{dataset}_paths_fixed_endpoints.pkl"
     features_folder = DATA_FOLDER + f"{dataset}_features/"
-    
     vertexs, edges = get_vertexes_and_edges(path_data_filepath)
     vtx_deg, vtx_emb, vtx_freq = get_vertex_features(vertexs)
     edge_sim, edge_dir, edge_rel, edge_prov = get_edge_features(edges, vtx_emb)

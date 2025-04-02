@@ -1,5 +1,4 @@
 import numpy as np
-import pickle
 import requests
 
 GLOVE_PATH = "../data/glove.42B.300d.txt"
