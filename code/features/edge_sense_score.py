@@ -60,15 +60,12 @@ if __name__ == '__main__':
     science_vertices = enumerate_vertices(science_data_path)
     money_vertices = enumerate_vertices(money_data_path)
     feature = EdgeSenseScore(science_vertices.union(money_vertices))
-    
-    '''
     run_vertex_feature_on_original(vertex_feature=feature,
                                    data_path=science_data_path,
                                    out="../data/science/features/e_sense.pkl")
     run_vertex_feature_on_original(vertex_feature=feature,
                                    data_path=money_data_path,
                                    out="../data/money/features/e_sense.pkl")
-    '''
     run_edge_feature_on_fixed_endpoints(feature,
                                         "../data/fixed_endpoints/money_paths_fixed_endpoints.pkl",
                                         "../data/fixed_endpoints/money_features/e_sense.pkl")
