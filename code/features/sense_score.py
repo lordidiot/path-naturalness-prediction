@@ -3,7 +3,7 @@ from nltk.corpus import wordnet
 from nltk.corpus.reader.wordnet import Synset
 import spacy
 
-GLOVE_PATH = "../data/vectors/glove.42B.300d.txt"
+GLOVE_PATH = "../data/glove.42B.300d.txt"
 
 class SenseScore:
     def __init__(self, vertices: set[str]):
