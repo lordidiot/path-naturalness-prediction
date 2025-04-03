@@ -2,7 +2,7 @@ import requests
 from typing import Optional
 
 from .base_feature import BaseEdgeFeature
-from .generate import run_edge_feature_on_original, enumerate_vertices
+from .generate import run_edge_feature_on_original, run_edge_feature_on_fixed_endpoints
 
 FEATURE_NAME = 'e_weightsource'
 CONCEPTNET_API_URL = "https://api.conceptnet.io"
@@ -65,9 +65,17 @@ if __name__ == "__main__":
     science_data_path = "../data/science/paths.pkl"
     money_data_path = "../data/money/paths.pkl"
     feature = EdgeProvenanceFeature()
+    '''
     run_edge_feature_on_original(edge_feature=feature,
                                  data_path=science_data_path,
                                  out=f"../data/science/features/{FEATURE_NAME}.pkl")
     run_edge_feature_on_original(edge_feature=feature,
                                  data_path=money_data_path,
                                  out=f"../data/money/features/{FEATURE_NAME}.pkl")
+    '''
+    run_edge_feature_on_fixed_endpoints(feature,
+                                        "../data/fixed_endpoints/money_paths_fixed_endpoints.pkl",
+                                        f"../data/fixed_endpoints/money_features/{FEATURE_NAME}.pkl")
+    run_edge_feature_on_fixed_endpoints(feature,
+                                        "../data/fixed_endpoints/science_paths_fixed_endpoints.pkl",
+                                        f"../data/fixed_endpoints/science_features/{FEATURE_NAME}.pkl")
