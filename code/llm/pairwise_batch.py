@@ -72,8 +72,8 @@ class AnswerReader(Prompting):
             raise ValueError(f"Pair ({path_a}, {path_b}) not found")
 
 if __name__ == '__main__':
-    # Ranges run: (0, 400), (1000, 1200)
-    clips = [(200, 400)]
+    # Ranges run: (0, 600), (1000, 1200)
+    clips = [(400, 600)]
     submit = True
     run_science(clips, submit=submit)
     # run_money(clips, submit=submit)
