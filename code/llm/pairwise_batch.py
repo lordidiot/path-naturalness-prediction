@@ -7,7 +7,7 @@ from .types import Path, Prompting, Answer
 from .batch import get_query_request_data
 from fixed_endpoints.utils import load_pickle
 
-def prepare(filename: str, clips: tuple[int, int], out: str) -> None:
+def prepare(filename: str, clips: list[tuple[int, int]], out: str) -> None:
     data = load_pickle(filename)
     pairs: list[tuple[Path, Path]] = []
     for clip in clips:
