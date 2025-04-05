@@ -109,3 +109,20 @@ class Predictor(nn.Module):
 		b = self.linear(vec2)
 		combined = torch.cat((a, b), dim=1)
 		return self.logsoftmax(combined)
+
+class PredictorSoftLabel(nn.Module):
+	'''
+	This should be used for experiments that use win-rate soft labels.
+	
+	takes two feature vectors, predicts softmax probabilities
+	'''
+	def __init__(self, feature_len):
+		super(PredictorSoftLabel, self).__init__()
+		self.linear = nn.Linear(feature_len, 1)
+		self.softmax = nn.Softmax(dim=1)
+	
+	def forward(self, vec1, vec2):
+		a = self.linear(vec1)
+		b = self.linear(vec2)
+		combined = torch.cat((a, b), dim=1)
+		return self.softmax(combined)
