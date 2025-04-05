@@ -33,10 +33,11 @@ all_feature_lengths = {'v_enc_onehot': 100,
 					   'e_sense': 1}
 
 class Dataset:
-	def __init__(self, dataset_name, feature_names, train_test_split_fraction, gpu):
+	def __init__(self, dataset_name, feature_names, train_test_split_fraction, gpu, soft_label=False):
 		self.feature_names = feature_names
 		self.cached_features = dict()
 		self.gpu = gpu
+		self.soft_label = soft_label
 		for f in feature_names:
 			print('loading '+f)
 			self.cached_features[f] = pickle.load(
@@ -52,18 +53,24 @@ class Dataset:
 			self.texts[id_num+'r'] = r_short
 		print('loading labeled pairs')
 		self.all_pairs = [] # list of id tuples (good, bad)
-		for l in open(f'../../data/{dataset_name}/openai_answers.txt'):
-			first, second, good = l.strip().split('_')
-			if first==good:
-				bad = second
-			elif second==good:
-				bad = first
-			g_len = (len(self.texts[good].strip().split(' '))+1)/2
-			b_len = (len(self.texts[bad].strip().split(' '))+1)/2
-			if g_len!=4 or b_len!=4:
-				continue
-			self.all_pairs.append((good, bad))
+		if not soft_label:
+			for l in open(f'../../data/{dataset_name}/openai_answers.txt'):
+				first, second, good = l.strip().split('_')
+				if first==good:
+					bad = second
+				elif second==good:
+					bad = first
+				g_len = (len(self.texts[good].strip().split(' '))+1)/2
+				b_len = (len(self.texts[bad].strip().split(' '))+1)/2
+				if g_len!=4 or b_len!=4:
+					continue
+				self.all_pairs.append((good, bad))
+		else:
+			for l in open(f'../../data/{dataset_name}/softlabels.txt'): # change to actual filename
+				first, second, score = l.strip().split('_')
+				self.all_pairs.append((first, second, score))
 		random.shuffle(self.all_pairs)
+		
 
 		split = int(train_test_split_fraction*len(self.all_pairs))
 		self.train_pairs = self.all_pairs[:split]
@@ -126,33 +133,50 @@ class Dataset:
 		v_features_B, e_features_B = self.prepare_feature_placeholder(N)
 		y = np.zeros(N, dtype='int64')
 
-		for instance_idx in range(N):
-			good, bad = next(self.cycled_train_pairs)
-			if randomize_dir:
-				good = good[:-1]+random.choice(['f','r'])
-				bad = bad[:-1]+random.choice(['f','r'])
-			v_good, e_good = self.get_features(good)
-			v_bad, e_bad = self.get_features(bad)
+		if not self.soft_label:
+			for instance_idx in range(N):
+				good, bad = next(self.cycled_train_pairs)
+				if randomize_dir:
+					good = good[:-1]+random.choice(['f','r'])
+					bad = bad[:-1]+random.choice(['f','r'])
+				v_good, e_good = self.get_features(good)
+				v_bad, e_bad = self.get_features(bad)
+				
+				label = random.random()>0.5
+				y[instance_idx] = label
+				for v_idx in range(4):
+					for v_fea_idx in range(len(v_good[v_idx])):
+						if label:
+							v_features_A[v_idx][v_fea_idx][instance_idx] = v_good[v_idx][v_fea_idx]
+							v_features_B[v_idx][v_fea_idx][instance_idx] = v_bad[v_idx][v_fea_idx]
+						else:
+							v_features_B[v_idx][v_fea_idx][instance_idx] = v_good[v_idx][v_fea_idx]
+							v_features_A[v_idx][v_fea_idx][instance_idx] = v_bad[v_idx][v_fea_idx]
 
-			label = random.random()>0.5
-			y[instance_idx] = label
-			for v_idx in range(4):
-				for v_fea_idx in range(len(v_good[v_idx])):
-					if label:
-						v_features_A[v_idx][v_fea_idx][instance_idx] = v_good[v_idx][v_fea_idx]
-						v_features_B[v_idx][v_fea_idx][instance_idx] = v_bad[v_idx][v_fea_idx]
-					else:
-						v_features_B[v_idx][v_fea_idx][instance_idx] = v_good[v_idx][v_fea_idx]
-						v_features_A[v_idx][v_fea_idx][instance_idx] = v_bad[v_idx][v_fea_idx]
-
-			for e_idx in range(3):
-				for e_fea_idx in range(len(e_good[e_idx])):
-					if label:
-						e_features_A[e_idx][e_fea_idx][instance_idx] = e_good[e_idx][e_fea_idx]
-						e_features_B[e_idx][e_fea_idx][instance_idx] = e_bad[e_idx][e_fea_idx]
-					else:
-						e_features_B[e_idx][e_fea_idx][instance_idx] = e_good[e_idx][e_fea_idx]
-						e_features_A[e_idx][e_fea_idx][instance_idx] = e_bad[e_idx][e_fea_idx]
+				for e_idx in range(3):
+					for e_fea_idx in range(len(e_good[e_idx])):
+						if label:
+							e_features_A[e_idx][e_fea_idx][instance_idx] = e_good[e_idx][e_fea_idx]
+							e_features_B[e_idx][e_fea_idx][instance_idx] = e_bad[e_idx][e_fea_idx]
+						else:
+							e_features_B[e_idx][e_fea_idx][instance_idx] = e_good[e_idx][e_fea_idx]
+							e_features_A[e_idx][e_fea_idx][instance_idx] = e_bad[e_idx][e_fea_idx]
+		else:
+			for instance_idx in range(N):
+				# no dir / label randomisation needed, we are using soft labels, already randomised
+				A, B, score = next(self.cycled_train_pairs)
+				y[instance_idx] = score
+				v_a, e_a = self.get_features(A)
+				v_b, e_b = self.get_features(B)
+				for v_idx in range(4):
+					for v_fea_idx in range(len(v_a[v_idx])):
+						v_features_A[v_idx][v_fea_idx][instance_idx] = v_a[v_idx][v_fea_idx]
+						v_features_B[v_idx][v_fea_idx][instance_idx] = v_b[v_idx][v_fea_idx]
+					
+				for e_idx in range(3):
+					for e_fea_idx in range(len(v_a[e_idx])):
+						e_features_A[e_idx][e_fea_idx][instance_idx] = e_a[e_idx][e_fea_idx]
+						e_features_B[e_idx][e_fea_idx][instance_idx] = e_b[e_idx][e_fea_idx]
 
 		for features in [v_features_A, e_features_A, v_features_B, e_features_B]:
 			for feature in features:
@@ -181,40 +205,58 @@ class Dataset:
 		if return_id:
 			ids = [[], []]
 
-		for instance_idx in range(N):
-			good, bad = self.test_pairs[instance_idx]
-			if randomize_dir:
-				good = good[:-1]+random.choice(['f','r'])
-				bad = bad[:-1]+random.choice(['f','r'])
-			v_good, e_good = self.get_features(good)
-			v_bad, e_bad = self.get_features(bad)
+		if not self.soft_label:
+			for instance_idx in range(N):
+				good, bad = self.test_pairs[instance_idx]
+				if randomize_dir:
+					good = good[:-1]+random.choice(['f','r'])
+					bad = bad[:-1]+random.choice(['f','r'])
+				v_good, e_good = self.get_features(good)
+				v_bad, e_bad = self.get_features(bad)
 
-			label = random.random()>0.5
-			y[instance_idx] = label
-			if return_id:
-				if label:
-					ids[0].append(good)
-					ids[1].append(bad)
-				else:
-					ids[0].append(bad)
-					ids[1].append(good)
-			for v_idx in range(4):
-				for v_fea_idx in range(len(v_good[v_idx])):
+				label = random.random()>0.5
+				y[instance_idx] = label
+				if return_id:
 					if label:
-						v_features_A[v_idx][v_fea_idx][instance_idx] = v_good[v_idx][v_fea_idx]
-						v_features_B[v_idx][v_fea_idx][instance_idx] = v_bad[v_idx][v_fea_idx]
+						ids[0].append(good)
+						ids[1].append(bad)
 					else:
-						v_features_B[v_idx][v_fea_idx][instance_idx] = v_good[v_idx][v_fea_idx]
-						v_features_A[v_idx][v_fea_idx][instance_idx] = v_bad[v_idx][v_fea_idx]
+						ids[0].append(bad)
+						ids[1].append(good)
+				for v_idx in range(4):
+					for v_fea_idx in range(len(v_good[v_idx])):
+						if label:
+							v_features_A[v_idx][v_fea_idx][instance_idx] = v_good[v_idx][v_fea_idx]
+							v_features_B[v_idx][v_fea_idx][instance_idx] = v_bad[v_idx][v_fea_idx]
+						else:
+							v_features_B[v_idx][v_fea_idx][instance_idx] = v_good[v_idx][v_fea_idx]
+							v_features_A[v_idx][v_fea_idx][instance_idx] = v_bad[v_idx][v_fea_idx]
 
-			for e_idx in range(3):
-				for e_fea_idx in range(len(e_good[e_idx])):
-					if label:
-						e_features_A[e_idx][e_fea_idx][instance_idx] = e_good[e_idx][e_fea_idx]
-						e_features_B[e_idx][e_fea_idx][instance_idx] = e_bad[e_idx][e_fea_idx]
-					else:
-						e_features_B[e_idx][e_fea_idx][instance_idx] = e_good[e_idx][e_fea_idx]
-						e_features_A[e_idx][e_fea_idx][instance_idx] = e_bad[e_idx][e_fea_idx]
+				for e_idx in range(3):
+					for e_fea_idx in range(len(e_good[e_idx])):
+						if label:
+							e_features_A[e_idx][e_fea_idx][instance_idx] = e_good[e_idx][e_fea_idx]
+							e_features_B[e_idx][e_fea_idx][instance_idx] = e_bad[e_idx][e_fea_idx]
+						else:
+							e_features_B[e_idx][e_fea_idx][instance_idx] = e_good[e_idx][e_fea_idx]
+							e_features_A[e_idx][e_fea_idx][instance_idx] = e_bad[e_idx][e_fea_idx]
+		else:
+			for instance_idx in range(N):
+				A, B, score = self.test_pairs[instance_idx]
+				y[instance_idx] = score
+				v_a, e_a = self.get_features(A)
+				v_b, e_b = self.get_features(B)
+				if return_id:
+					ids[0].append(A)
+					ids[1].append(B)
+				for v_idx in range(4):
+					for v_fea_idx in range(len(v_a[v_idx])):
+						v_features_A[v_idx][v_fea_idx][instance_idx] = v_a[v_idx][v_fea_idx]
+						v_features_B[v_idx][v_fea_idx][instance_idx] = v_b[v_idx][v_fea_idx]
+				for e_idx in range(3):
+					for e_fea_idx in range(len(v_a[e_idx])):
+						e_features_A[e_idx][e_fea_idx][instance_idx] = e_a[e_idx][e_fea_idx]
+						e_features_B[e_idx][e_fea_idx][instance_idx] = e_b[e_idx][e_fea_idx]
 
 		for features in [v_features_A, e_features_A, v_features_B, e_features_B]:
 			for feature in features:
@@ -302,7 +344,7 @@ def _sample_pairs_fairly_from_entries(entries: list, num_occurrences_per_entry: 
 	return samples
 
 
-def generate_pair_samples(dir_name: str, file_name: str, out: str, num_occurrences_per_entry: int, mode = 'rr'):
+def generate_soft_label_pair_samples(dir_name: str, file_name: str, out: str, num_occurrences_per_entry: int, mode = 'rr'):
 	'''
 	from paths in file_name, generate pairs so that each path occurs {num_occurrences_per_entry} times
 	in total generating {num_occurrences_per_entry * len(paths) // 2} pairs
@@ -334,7 +376,7 @@ def generate_pair_samples(dir_name: str, file_name: str, out: str, num_occurrenc
 
 
 if __name__ == '__main__':
-	generate_pair_samples('data/fixed_endpoints', 'science_rr.txt', 'science_rr_softlabels.txt', 30, mode='rr')
+	generate_soft_label_pair_samples('data/fixed_endpoints', 'science_rr.txt', 'science_rr_softlabels.txt', 30, mode='rr')
 
 
 # if __name__ == '__main__':
