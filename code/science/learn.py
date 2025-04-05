@@ -5,18 +5,19 @@ import numpy as np
 import torch, sys, os
 from torch import nn, optim
 from torch.autograd import Variable
-from model import ChainEncoder, Predictor
+from model import ChainEncoder, Predictor, PredictorSoftLabel
 from dataset import Dataset
 from multiprocessing import Pool
 
-def train(features, fea_len, split_frac, out_file):
+def train(features, fea_len, split_frac, out_file, soft_label=False):
 	if isinstance(out_file, str):
 		out_file = open(out_file, 'w')
 	d = Dataset('science', features, split_frac, gpu)
 	print('defining architecture')
 	enc = ChainEncoder(d.get_v_fea_len(), d.get_e_fea_len(), fea_len, 'last')
-	predictor = Predictor(fea_len)
-	loss = nn.NLLLoss()
+	# New training pipeline for experiments that use win-rate soft labels: set soft_label=True
+	predictor = Predictor(fea_len) if not soft_label else PredictorSoftLabel(fea_len)
+	loss = nn.NLLLoss() if not soft_label else nn.BCELoss()
 	if gpu:
 		enc.cuda()
 		predictor.cuda()
