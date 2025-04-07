@@ -51,11 +51,11 @@ def run_money(clip: tuple[int, int], submit: bool):
 
 def main():
     # Dataset has ~2.8k rows, so pick range to be either (0, 1500) or (1500, 3000)
-    clip = (0, 1500)
+    clip = (1500, 3000)
     # Change this to True to submit batch job to OpenAI
     submit = False
     # Comment out accordingly
-    run_science(clip, submit)
+    # run_science(clip, submit)
     run_money(clip, submit)
 
     # After this, to parse the output, download it
