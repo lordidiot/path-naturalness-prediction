@@ -10,8 +10,8 @@ from dataset import Dataset
 from multiprocessing import Pool
 
 gpu = False
-def evaluate(features, fea_len, encoder_path, predictor_path):
-	d = Dataset('money', features, 0, gpu)
+def evaluate(features, fea_len, encoder_path, predictor_path, soft_label=False):
+	d = Dataset('money', features, 0, gpu, soft_label=soft_label)
 	enc = ChainEncoder(d.get_v_fea_len(), d.get_e_fea_len(), fea_len, 'last')
 	enc.load_state_dict(torch.load(encoder_path))
 	predictor = Predictor(fea_len)
@@ -41,7 +41,11 @@ def main():
         print(f"Usage: {sys.argv[0]} <encoder.model> <predictor.model>")
         return
     encoder_path, predictor_path = sys.argv[1:3]
+
     print(evaluate(features, feature_len, encoder_path, predictor_path))
+    
+	# evaluate model trained with soft label data
+    # print(evaluate(features, feature_len, encoder_path, predictor_path, soft_label=True))
 
 if __name__ == '__main__':
     main()
