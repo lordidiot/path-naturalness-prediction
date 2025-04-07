@@ -12,7 +12,7 @@ from multiprocessing import Pool
 def train(features, fea_len, split_frac, out_file, soft_label=False):
 	if isinstance(out_file, str):
 		out_file = open(out_file, 'w')
-	d = Dataset('science', features, split_frac, gpu)
+	d = Dataset('finegrained', features, split_frac, gpu, soft_label=soft_label)
 	print('defining architecture')
 	enc = ChainEncoder(d.get_v_fea_len(), d.get_e_fea_len(), fea_len, 'last')
 	# New training pipeline for experiments that use win-rate soft labels: set soft_label=True
@@ -27,6 +27,7 @@ def train(features, fea_len, split_frac, out_file, soft_label=False):
 
 	print('training')
 	test_chain_A, test_chain_B, test_y = d.get_test_pairs()
+	
 	test_y = test_y.data.cpu().numpy()
 	for train_iter in range(4000):
 		chains_A, chains_B, y = d.get_train_pairs(1000)
@@ -63,4 +64,5 @@ features = ['v_enc_dim300', 'v_freq_freq', 'v_deg', 'v_sense', 'e_vertexsim',
 	'e_dir', 'e_rel', 'e_weightsource', 'e_sense']
 feature_len = 20
 split_frac = 0.8
-train(features, feature_len, split_frac, 'train.log')
+train(features, feature_len, split_frac, 'train.log', soft_label=True)
+

@@ -201,7 +201,10 @@ class Dataset:
 		N = len(self.test_pairs)
 		v_features_A, e_features_A = self.prepare_feature_placeholder(N)
 		v_features_B, e_features_B = self.prepare_feature_placeholder(N)
-		y = np.zeros(N, dtype='int64')
+		if not self.soft_label:
+			y = np.zeros(N, dtype='int64')
+		else:
+			y = np.zeros(N, dtype='float32')
 		if return_id:
 			ids = [[], []]
 
@@ -243,8 +246,12 @@ class Dataset:
 		else:
 			for instance_idx in range(N):
 				A, B, score = self.test_pairs[instance_idx]
+				A = A[7:]
+				B = B[7:]
 				y[instance_idx] = score
 				v_a, e_a = self.get_features(A)
+				print(f"###{instance_idx}")
+				print(v_a[0][0])
 				v_b, e_b = self.get_features(B)
 				if return_id:
 					ids[0].append(A)

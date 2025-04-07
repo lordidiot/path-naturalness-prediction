@@ -4,6 +4,7 @@ import os
 from openai import OpenAI
 import time
 from pprint import pprint
+from science.learn import train
 
 def to_path(code, data):
     id = code[:-1]
@@ -180,7 +181,58 @@ def prepare_data(name, rows):
                 json.dump(data, f)
                 f.write("\n")
             i += 1
-
+    elif name == "trial":
+        system_prompt = (
+            "You are an expert in natural language understanding. Given two conceptual paths that connect "
+            "words or ideas, your task is to evaluate which path sounds more natural, intuitive, or human-like in reasoning.\n\n"
+            "A more natural path flows logically and smoothly in meaning, like how people would typically associate ideas.\n\n"
+            "Wrap your answer (A or B) in $ symbol (e.g. $A$ or $B$ at the very start of the sentence.) Then provide an explanation of answer."
+        )
+        i = 0
+        for pairs in rows:
+            user_prompt = f"Question <A> {pairs[0]}\n<B> {pairs[1]}\nAnswer:"
+            data = {
+                "custom_id": f"R{i}",
+                "method": "POST",
+                "url": "/v1/chat/completions",
+                "body": {
+                    "model": "gpt-4o-mini",
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ]
+                }
+            }
+            with open(f"../data/finegrained/{name}/request.jsonl", "a") as f:
+                json.dump(data, f)
+                f.write("\n")
+            i += 1
+    elif name == "trial":
+        system_prompt = (
+            "You are an expert in natural language understanding. Given two conceptual paths that connect "
+            "words or ideas, your task is to evaluate which path sounds more natural, intuitive, or human-like in reasoning.\n\n"
+            "A more natural path flows logically and smoothly in meaning, like how people would typically associate ideas.\n\n"
+            "Wrap your answer (A or B) in $ symbol (e.g. $A$ or $B$ at the very start of the sentence.) Then provide an explanation of answer."
+        )
+        i = 0
+        for pairs in rows:
+            user_prompt = f"Question <A> {pairs[0]}\n<B> {pairs[1]}\nAnswer:"
+            data = {
+                "custom_id": f"R{i}",
+                "method": "POST",
+                "url": "/v1/chat/completions",
+                "body": {
+                    "model": "gpt-4o-mini",
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ]
+                }
+            }
+            with open(f"../data/finegrained/{name}/request.jsonl", "a") as f:
+                json.dump(data, f)
+                f.write("\n")
+            i += 1
         
 def extract_contents_from_jsonl(jsonl_file):
     contents = []
@@ -197,39 +249,39 @@ def extract_contents_from_jsonl(jsonl_file):
 
 def main():
     rows = []
-    with open("../data/science/llm_answers.txt", "r") as file:
-        for line in file:
-            parts = line.strip().split("_")
-            pair = [parts[0], parts[1]]
-            rows.append(pair)
-    training_data = list(map(lambda x: ['cs4248/' + x[0], 'cs4248/' + x[1], 0], rows))
-    with open("../data/science/paths.pkl", "rb") as file:
-        data = pickle.load(file)
-    rows = list(map(lambda x: [to_path(x[0], data), to_path(x[1], data)], rows))
+    # with open("../data/science/llm_answers.txt", "r") as file:
+    #     for line in file:
+    #         parts = line.strip().split("_")
+    #         pair = [parts[0], parts[1]]
+    #         rows.append(pair)
+    # training_data = list(map(lambda x: ['cs4248/' + x[0], 'cs4248/' + x[1], 0], rows))
+    # with open("../data/science/paths.pkl", "rb") as file:
+    #     data = pickle.load(file)
+    # rows = list(map(lambda x: [to_path(x[0], data), to_path(x[1], data)], rows))
     
     # prepare_data("zero_shot", rows)
     # prepare_data("one_shot", rows)
     # prepare_data("CoT_zero_shot", rows)
     # prepare_data("CoT_one_shot", rows)
     # prepare_data("few-shot", rows)
-
-    # client = OpenAI()
-    # with open("../data/finegrained/CoT_one_shot/request.jsonl", 'rb') as f:
-    #     batch_input_file = client.files.create(file=f, purpose="batch")
-    #     batch_input_file_id = batch_input_file.id
-    #     print(f"Batch input file created: {batch_input_file}")
-# 
-    # job = client.batches.create(
-    #     input_file_id=batch_input_file_id,
-    #     endpoint="/v1/chat/completions",
-    #     completion_window="24h",
-    #     metadata={
-    #         "description": "CoT_one_shot"
-    #     }
-    # )
-    # print("Batch job:")
-# 
-    # pprint(job)
+    # prepare_data("trial", rows)
+    #client = OpenAI()
+    #with open("../data/finegrained/trial/request.jsonl", 'rb') as f:
+    #    batch_input_file = client.files.create(file=f, purpose="batch")
+    #    batch_input_file_id = batch_input_file.id
+    #    print(f"Batch input file created: {batch_input_file}")
+##
+    #job = client.batches.create(
+    #    input_file_id=batch_input_file_id,
+    #    endpoint="/v1/chat/completions",
+    #    completion_window="24h",
+    #    metadata={
+    #        "description": "trial"
+    #    }
+    #)
+    #print("Batch job:")
+##
+    #pprint(job)
 
     #batch_id = "batch_67f28fdc95248190b183a837632735dc"
 #
@@ -239,60 +291,67 @@ def main():
     #    if status.status == "completed":
     #        break
     #    time.sleep(30)
-    contents_zero_shot_1 = extract_contents_from_jsonl("../data/finegrained/zero_shot/zero_shot_output_1.jsonl")
-    contents_zero_shot_2 = extract_contents_from_jsonl("../data/finegrained/zero_shot/zero_shot_output_2.jsonl")
-    contents_zero_shot_3 = extract_contents_from_jsonl("../data/finegrained/zero_shot/zero_shot_output_3.jsonl")
-    contents_one_shot_1 = extract_contents_from_jsonl("../data/finegrained/one_shot/one_shot_output_1.jsonl")
-    contents_one_shot_2 = extract_contents_from_jsonl("../data/finegrained/one_shot/one_shot_output_2.jsonl")
-    contents_one_shot_3 = extract_contents_from_jsonl("../data/finegrained/one_shot/one_shot_output_3.jsonl")
-    contents_few_shot_1 = extract_contents_from_jsonl("../data/finegrained/few-shot/few-shot_output_1.jsonl")
-    contents_few_shot_2 = extract_contents_from_jsonl("../data/finegrained/few-shot/few-shot_output_2.jsonl")
-    contents_few_shot_3 = extract_contents_from_jsonl("../data/finegrained/few-shot/few-shot_output_3.jsonl")
-    contents_CoT_zero_shot_1 = extract_contents_from_jsonl("../data/finegrained/CoT_zero_shot/CoT_zero_shot_output_1.jsonl")
-    contents_CoT_zero_shot_2 = extract_contents_from_jsonl("../data/finegrained/CoT_zero_shot/CoT_zero_shot_output_2.jsonl")
-    contents_CoT_zero_shot_3 = extract_contents_from_jsonl("../data/finegrained/CoT_zero_shot/CoT_zero_shot_output_3.jsonl")
-    contents_CoT_one_shot_1 = extract_contents_from_jsonl("../data/finegrained/CoT_one_shot/CoT_one_shot_output_1.jsonl")
-    contents_CoT_one_shot_2 = extract_contents_from_jsonl("../data/finegrained/CoT_one_shot/CoT_one_shot_output_2.jsonl")
-    contents_CoT_one_shot_3 = extract_contents_from_jsonl("../data/finegrained/CoT_one_shot/CoT_one_shot_output_3.jsonl")
-    for i in range(len(training_data)):
-        if contents_zero_shot_1[i] == "A":
-            training_data[i][2] += 1
-        if contents_zero_shot_2[i] == "A":
-            training_data[i][2] += 1
-        if contents_zero_shot_3[i] == "A":
-            training_data[i][2] += 1
-        if contents_one_shot_1[i] == "A":
-            training_data[i][2] += 1
-        if contents_one_shot_2[i] == "A":
-            training_data[i][2] += 1
-        if contents_one_shot_3[i] == "A":
-            training_data[i][2] += 1
-        if contents_few_shot_1[i] == "A":
-            training_data[i][2] += 1
-        if contents_few_shot_2[i] == "A":
-            training_data[i][2] += 1
-        if contents_few_shot_3[i] == "A":
-            training_data[i][2] += 1
-        if contents_CoT_zero_shot_1[i] == "A":
-            training_data[i][2] += 1
-        if contents_CoT_zero_shot_2[i] == "A":
-            training_data[i][2] += 1
-        if contents_CoT_zero_shot_3[i] == "A":
-            training_data[i][2] += 1
-        if contents_CoT_one_shot_1[i] == "A":
-            training_data[i][2] += 1
-        if contents_CoT_one_shot_2[i] == "A":
-            training_data[i][2] += 1
-        if contents_CoT_one_shot_3[i] == "A":
-            training_data[i][2] += 1
-    for i in range(len(training_data)):
-        training_data[i][2] = training_data[i][2] / 15
-    training_data = list(map(lambda x: x[0]+"_"+x[1]+"_"+f"{x[2]}", training_data))
-    output_file = "../data/finegrained/train.txt"
-    
-    with open(output_file, "w") as f:
-        for path in training_data:
-            f.write(path + "\n")
+    # contents_zero_shot_1 = extract_contents_from_jsonl("../data/finegrained/zero_shot/zero_shot_output_1.jsonl")
+    # contents_zero_shot_2 = extract_contents_from_jsonl("../data/finegrained/zero_shot/zero_shot_output_2.jsonl")
+    # contents_zero_shot_3 = extract_contents_from_jsonl("../data/finegrained/zero_shot/zero_shot_output_3.jsonl")
+    # contents_one_shot_1 = extract_contents_from_jsonl("../data/finegrained/one_shot/one_shot_output_1.jsonl")
+    # contents_one_shot_2 = extract_contents_from_jsonl("../data/finegrained/one_shot/one_shot_output_2.jsonl")
+    # contents_one_shot_3 = extract_contents_from_jsonl("../data/finegrained/one_shot/one_shot_output_3.jsonl")
+    # contents_few_shot_1 = extract_contents_from_jsonl("../data/finegrained/few-shot/few-shot_output_1.jsonl")
+    # contents_few_shot_2 = extract_contents_from_jsonl("../data/finegrained/few-shot/few-shot_output_2.jsonl")
+    # contents_few_shot_3 = extract_contents_from_jsonl("../data/finegrained/few-shot/few-shot_output_3.jsonl")
+    # contents_CoT_zero_shot_1 = extract_contents_from_jsonl("../data/finegrained/CoT_zero_shot/CoT_zero_shot_output_1.jsonl")
+    # contents_CoT_zero_shot_2 = extract_contents_from_jsonl("../data/finegrained/CoT_zero_shot/CoT_zero_shot_output_2.jsonl")
+    # contents_CoT_zero_shot_3 = extract_contents_from_jsonl("../data/finegrained/CoT_zero_shot/CoT_zero_shot_output_3.jsonl")
+    # contents_CoT_one_shot_1 = extract_contents_from_jsonl("../data/finegrained/CoT_one_shot/CoT_one_shot_output_1.jsonl")
+    # contents_CoT_one_shot_2 = extract_contents_from_jsonl("../data/finegrained/CoT_one_shot/CoT_one_shot_output_2.jsonl")
+    # contents_CoT_one_shot_3 = extract_contents_from_jsonl("../data/finegrained/CoT_one_shot/CoT_one_shot_output_3.jsonl")
+    # for i in range(len(training_data)):
+    #     if contents_zero_shot_1[i] == "A":
+    #         training_data[i][2] += 1
+    #     if contents_zero_shot_2[i] == "A":
+    #         training_data[i][2] += 1
+    #     if contents_zero_shot_3[i] == "A":
+    #         training_data[i][2] += 1
+    #     if contents_one_shot_1[i] == "A":
+    #         training_data[i][2] += 1
+    #     if contents_one_shot_2[i] == "A":
+    #         training_data[i][2] += 1
+    #     if contents_one_shot_3[i] == "A":
+    #         training_data[i][2] += 1
+    #     if contents_few_shot_1[i] == "A":
+    #         training_data[i][2] += 1
+    #     if contents_few_shot_2[i] == "A":
+    #         training_data[i][2] += 1
+    #     if contents_few_shot_3[i] == "A":
+    #         training_data[i][2] += 1
+    #     if contents_CoT_zero_shot_1[i] == "A":
+    #         training_data[i][2] += 1
+    #     if contents_CoT_zero_shot_2[i] == "A":
+    #         training_data[i][2] += 1
+    #     if contents_CoT_zero_shot_3[i] == "A":
+    #         training_data[i][2] += 1
+    #     if contents_CoT_one_shot_1[i] == "A":
+    #         training_data[i][2] += 1
+    #     if contents_CoT_one_shot_2[i] == "A":
+    #         training_data[i][2] += 1
+    #     if contents_CoT_one_shot_3[i] == "A":
+    #         training_data[i][2] += 1
+    # for i in range(len(training_data)):
+    #     training_data[i][2] = training_data[i][2] / 15
+    # training_data = list(map(lambda x: x[0]+"_"+x[1]+"_"+f"{x[2]}", training_data))
+    # output_file = "../data/finegrained/train.txt"
+    # 
+    # with open(output_file, "w") as f:
+    #     for path in training_data:
+    #         f.write(path + "\n")
+
+    gpu = False
+    features = ['v_enc_dim300', 'v_freq_freq', 'v_deg', 'v_sense', 'e_vertexsim', 
+    	'e_dir', 'e_rel', 'e_weightsource', 'e_sense']
+    feature_len = 20
+    split_frac = 0.8
+    train(features, feature_len, split_frac, 'train.log')
     
     
 
