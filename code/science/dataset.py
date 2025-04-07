@@ -66,13 +66,13 @@ class Dataset:
 					continue
 				self.all_pairs.append((good, bad))
 		else:
-			for l in open(f'../../data/{dataset_name}/rr_answers_pairwise_softlabel.txt'): # change to actual filename
+			for l in open(f'../../data/{dataset_name}/softlabel.txt'): # change to actual filename
 				first, second, score = l.strip().split('_')
 				a_len = (len(self.texts[first].strip().split(' '))+1)/2
 				b_len = (len(self.texts[second].strip().split(' '))+1)/2
 				if a_len!=4 or b_len!=4:
 					continue
-				self.all_pairs.append((first, second, score))
+				self.all_pairs.append((first, second, float(score)))
 		random.shuffle(self.all_pairs)
 		
 
