@@ -7,7 +7,6 @@ from itertools import cycle
 
 import torch
 from torch.autograd import Variable
-from tqdm import tqdm
 
 all_feature_lengths = {'v_enc_onehot': 100,
 					   'v_enc_embedding': 300,
@@ -33,7 +32,8 @@ all_feature_lengths = {'v_enc_onehot': 100,
 					   'e_sense': 1}
 
 class Dataset:
-	def __init__(self, dataset_name, feature_names, train_test_split_fraction, gpu, soft_label=False):
+	def __init__(self, dataset_name, feature_names, train_test_split_fraction, gpu,
+			  		path_filename="paths.pkl", data_filename="answers.txt", soft_label=False):
 		self.feature_names = feature_names
 		self.cached_features = dict()
 		self.gpu = gpu
@@ -43,7 +43,7 @@ class Dataset:
 			self.cached_features[f] = pickle.load(
 				open(f'../../data/{dataset_name}/features/{f}.pkl', 'rb'), encoding='latin1')
 		sampled_problems = pickle.load(open(
-			f'../../data/{dataset_name}/paths.pkl', 'rb'))
+			f'../../data/{dataset_name}/{path_filename}', 'rb'))
 		self.texts = dict()
 		print('loading problem plain texts')
 		for id_num in sampled_problems:
@@ -54,7 +54,7 @@ class Dataset:
 		print('loading labeled pairs')
 		self.all_pairs = [] # list of id tuples (good, bad)
 		if not soft_label:
-			for l in open(f'../../data/{dataset_name}/llm_answers.txt'):
+			for l in open(f'../../data/{dataset_name}/{data_filename}'):
 				first, second, good = l.strip().split('_')
 				if first==good:
 					bad = second
@@ -66,7 +66,7 @@ class Dataset:
 					continue
 				self.all_pairs.append((good, bad))
 		else:
-			for l in open(f'../../data/{dataset_name}/softlabel.txt'): # change to actual filename
+			for l in open(f'../../data/{dataset_name}/{data_filename}'):
 				first, second, score = l.strip().split('_')
 				a_len = (len(self.texts[first].strip().split(' '))+1)/2
 				b_len = (len(self.texts[second].strip().split(' '))+1)/2
@@ -249,7 +249,7 @@ class Dataset:
 		else:
 			for instance_idx in range(N):
 				A, B, score = self.test_pairs[instance_idx]
-				y[instance_idx] = 1 if score > 0.5 else 0
+				y[instance_idx] = 1 if float(score) > 0.5 else 0
 				v_a, e_a = self.get_features(A)
 				v_b, e_b = self.get_features(B)
 				if return_id:
