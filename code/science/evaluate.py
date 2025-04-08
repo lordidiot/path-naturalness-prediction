@@ -51,23 +51,23 @@ def main():
 				predictor_path = f"ckpt/{epoc}_predictor.model"
 				print(f"Evaluating {encoder_path} and {predictor_path}")
 				acc = evaluate(features, feature_len, encoder_path, predictor_path,
-						 path_filename="paths.pkl", data_filename="answers.txt", soft_label=False)
+						 path_filename="paths.pkl", data_filename="answers.txt", soft_label=False, new_path_format=False)
 				f.write(f'{acc}\n')
 				epoc += 50
 			encoder_path = "ckpt/final_encoder.model"
 			predictor_path = "ckpt/final_predictor.model"
 			acc = evaluate(features, feature_len, encoder_path, predictor_path,
-						 path_filename="paths.pkl", data_filename="answers.txt", soft_label=False)
+						 path_filename="paths.pkl", data_filename="answers.txt", soft_label=False, new_path_format=False)
 			f.write(f'{acc}\n')
 			return
 
-	# When evaluating on hard label dataset, use this	  
+	# When evaluating on hard label dataset, use this
 	print(evaluate(features, feature_len, encoder_path, predictor_path,
-				   path_filename="paths.pkl", data_filename="answers.txt", soft_label=False))
+				   path_filename="paths.pkl", data_filename="answers.txt", soft_label=False, new_path_format=False))
 	
 	# When evaluating on soft label dataset, use this
 	# print(evaluate(features, feature_len, encoder_path, predictor_path,
-	#                path_filename="paths.pkl", data_filename="answers.txt", soft_label=False))
+	#                path_filename="paths.pkl", data_filename="abc.txt", soft_label=True, new_path_format=False))
 
 if __name__ == '__main__':
 	main()
