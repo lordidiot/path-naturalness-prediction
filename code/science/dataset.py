@@ -33,7 +33,7 @@ all_feature_lengths = {'v_enc_onehot': 100,
 
 class Dataset:
 	def __init__(self, dataset_name, feature_names, train_test_split_fraction, gpu,
-			  		path_filename="paths.pkl", data_filename="answers.txt", soft_label=False):
+			  		path_filename="paths.pkl", data_filename="softlabel.txt", soft_label=True):
 		self.feature_names = feature_names
 		self.cached_features = dict()
 		self.gpu = gpu
