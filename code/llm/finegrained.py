@@ -4,6 +4,7 @@ import os
 from openai import OpenAI
 import time
 from pprint import pprint
+import random
 
 def to_path(code, data):
     id = code[:-1]
@@ -180,19 +181,55 @@ def prepare_data(name, rows):
                 json.dump(data, f)
                 f.write("\n")
             i += 1
+    elif name == "original":
+        i = 0
+        for pairs in rows:
+            user_prompt = f"""
+Which of the following paths connecting two concepts is the most natural?
+
+A) {pairs[0]}
+B) {pairs[1]}
+
+Explain first, then wrap your answer in $ (e.g. $A$ or $B$).
+"""
+            data = {
+                "custom_id": f"R{i}",
+                "method": "POST",
+                "url": "/v1/chat/completions",
+                "body": {
+                    "model": "gpt-4o-mini",
+                    "messages": [
+                        {"role": "user", "content": user_prompt}
+                    ]
+                }
+            }
+            with open(f"../data/finegrained/{name}/request.jsonl", "a") as f:
+                json.dump(data, f)
+                f.write("\n")
+            i += 1
+
+        
 
         
 def extract_contents_from_jsonl(jsonl_file):
     contents = []
     with open(jsonl_file, "r") as f:
+        count = 0
         for line in f:
             line = line.strip()
             if not line:
                 continue  # skip empty lines
             record = json.loads(line)
             content = record["response"]["body"]["choices"][0]["message"]["content"]
-            content = content if (content == "A" or content == "B") else "B"  # default to "B" if not A or B (very rare I havent seen one)
-            contents.append(content)
+            if "$A$" in content:
+                label = "$A$"
+            elif "$B$" in content:
+                label = "$B$"
+            else:
+                label = random.choice(["$A$", "$B$"])
+                count += 1
+            contents.append(label)
+        print(count)
     return contents
 
 def main():
@@ -202,7 +239,7 @@ def main():
             parts = line.strip().split("_")
             pair = [parts[0], parts[1]]
             rows.append(pair)
-    training_data = list(map(lambda x: ['cs4248/' + x[0], 'cs4248/' + x[1], 0], rows))
+    training_data = list(map(lambda x: [x[0], x[1], 0], rows))
     with open("../data/science/paths.pkl", "rb") as file:
         data = pickle.load(file)
     rows = list(map(lambda x: [to_path(x[0], data), to_path(x[1], data)], rows))
@@ -212,88 +249,105 @@ def main():
     # prepare_data("CoT_zero_shot", rows)
     # prepare_data("CoT_one_shot", rows)
     # prepare_data("few-shot", rows)
+    # prepare_data("original", rows)
 
-    # client = OpenAI()
-    # with open("../data/finegrained/CoT_one_shot/request.jsonl", 'rb') as f:
-    #     batch_input_file = client.files.create(file=f, purpose="batch")
-    #     batch_input_file_id = batch_input_file.id
-    #     print(f"Batch input file created: {batch_input_file}")
-# 
-    # job = client.batches.create(
-    #     input_file_id=batch_input_file_id,
-    #     endpoint="/v1/chat/completions",
-    #     completion_window="24h",
-    #     metadata={
-    #         "description": "CoT_one_shot"
-    #     }
-    # )
-    # print("Batch job:")
-# 
-    # pprint(job)
-
-    #batch_id = "batch_67f28fdc95248190b183a837632735dc"
+    #client = OpenAI()
+    #with open("../data/finegrained/original/request.jsonl", 'rb') as f:
+    #    batch_input_file = client.files.create(file=f, purpose="batch")
+    #    batch_input_file_id = batch_input_file.id
+    #    print(f"Batch input file created: {batch_input_file}")
 #
-    #while True:
-    #    status = client.batches.retrieve(batch_id)
-    #    print("Current batch status:", status.request_counts)
-    #    if status.status == "completed":
-    #        break
-    #    time.sleep(30)
-    contents_zero_shot_1 = extract_contents_from_jsonl("../data/finegrained/zero_shot/zero_shot_output_1.jsonl")
-    contents_zero_shot_2 = extract_contents_from_jsonl("../data/finegrained/zero_shot/zero_shot_output_2.jsonl")
-    contents_zero_shot_3 = extract_contents_from_jsonl("../data/finegrained/zero_shot/zero_shot_output_3.jsonl")
-    contents_one_shot_1 = extract_contents_from_jsonl("../data/finegrained/one_shot/one_shot_output_1.jsonl")
-    contents_one_shot_2 = extract_contents_from_jsonl("../data/finegrained/one_shot/one_shot_output_2.jsonl")
-    contents_one_shot_3 = extract_contents_from_jsonl("../data/finegrained/one_shot/one_shot_output_3.jsonl")
-    contents_few_shot_1 = extract_contents_from_jsonl("../data/finegrained/few-shot/few-shot_output_1.jsonl")
-    contents_few_shot_2 = extract_contents_from_jsonl("../data/finegrained/few-shot/few-shot_output_2.jsonl")
-    contents_few_shot_3 = extract_contents_from_jsonl("../data/finegrained/few-shot/few-shot_output_3.jsonl")
-    contents_CoT_zero_shot_1 = extract_contents_from_jsonl("../data/finegrained/CoT_zero_shot/CoT_zero_shot_output_1.jsonl")
-    contents_CoT_zero_shot_2 = extract_contents_from_jsonl("../data/finegrained/CoT_zero_shot/CoT_zero_shot_output_2.jsonl")
-    contents_CoT_zero_shot_3 = extract_contents_from_jsonl("../data/finegrained/CoT_zero_shot/CoT_zero_shot_output_3.jsonl")
-    contents_CoT_one_shot_1 = extract_contents_from_jsonl("../data/finegrained/CoT_one_shot/CoT_one_shot_output_1.jsonl")
-    contents_CoT_one_shot_2 = extract_contents_from_jsonl("../data/finegrained/CoT_one_shot/CoT_one_shot_output_2.jsonl")
-    contents_CoT_one_shot_3 = extract_contents_from_jsonl("../data/finegrained/CoT_one_shot/CoT_one_shot_output_3.jsonl")
+    #job = client.batches.create(
+    #    input_file_id=batch_input_file_id,
+    #    endpoint="/v1/chat/completions",
+    #    completion_window="24h",
+    #    metadata={
+    #        "description": "original"
+    #    }
+    #)
+    #print("Batch job:")
+# #
+    #pprint(job)
+
+    # contents_zero_shot_1 = extract_contents_from_jsonl("../data/finegrained/zero_shot/zero_shot_output_1.jsonl")
+    # contents_zero_shot_2 = extract_contents_from_jsonl("../data/finegrained/zero_shot/zero_shot_output_2.jsonl")
+    # contents_zero_shot_3 = extract_contents_from_jsonl("../data/finegrained/zero_shot/zero_shot_output_3.jsonl")
+    # contents_one_shot_1 = extract_contents_from_jsonl("../data/finegrained/one_shot/one_shot_output_1.jsonl")
+    # contents_one_shot_2 = extract_contents_from_jsonl("../data/finegrained/one_shot/one_shot_output_2.jsonl")
+    # contents_one_shot_3 = extract_contents_from_jsonl("../data/finegrained/one_shot/one_shot_output_3.jsonl")
+    # contents_few_shot_1 = extract_contents_from_jsonl("../data/finegrained/few-shot/few-shot_output_1.jsonl")
+    # contents_few_shot_2 = extract_contents_from_jsonl("../data/finegrained/few-shot/few-shot_output_2.jsonl")
+    # contents_few_shot_3 = extract_contents_from_jsonl("../data/finegrained/few-shot/few-shot_output_3.jsonl")
+    # contents_CoT_zero_shot_1 = extract_contents_from_jsonl("../data/finegrained/CoT_zero_shot/CoT_zero_shot_output_1.jsonl")
+    # contents_CoT_zero_shot_2 = extract_contents_from_jsonl("../data/finegrained/CoT_zero_shot/CoT_zero_shot_output_2.jsonl")
+    # contents_CoT_zero_shot_3 = extract_contents_from_jsonl("../data/finegrained/CoT_zero_shot/CoT_zero_shot_output_3.jsonl")
+    # contents_CoT_one_shot_1 = extract_contents_from_jsonl("../data/finegrained/CoT_one_shot/CoT_one_shot_output_1.jsonl")
+    # contents_CoT_one_shot_2 = extract_contents_from_jsonl("../data/finegrained/CoT_one_shot/CoT_one_shot_output_2.jsonl")
+    # contents_CoT_one_shot_3 = extract_contents_from_jsonl("../data/finegrained/CoT_one_shot/CoT_one_shot_output_3.jsonl")
+
+    contents = []
+    for i in range(1,31):
+        contents.append(extract_contents_from_jsonl(f"../data/finegrained/original/{i}_output.jsonl"))
+
+    for j in range(len(training_data)):
+        for i in range(30):
+            if contents[i][j] == "$A$":
+                training_data[j][2] += 1
+
     for i in range(len(training_data)):
-        if contents_zero_shot_1[i] == "A":
-            training_data[i][2] += 1
-        if contents_zero_shot_2[i] == "A":
-            training_data[i][2] += 1
-        if contents_zero_shot_3[i] == "A":
-            training_data[i][2] += 1
-        if contents_one_shot_1[i] == "A":
-            training_data[i][2] += 1
-        if contents_one_shot_2[i] == "A":
-            training_data[i][2] += 1
-        if contents_one_shot_3[i] == "A":
-            training_data[i][2] += 1
-        if contents_few_shot_1[i] == "A":
-            training_data[i][2] += 1
-        if contents_few_shot_2[i] == "A":
-            training_data[i][2] += 1
-        if contents_few_shot_3[i] == "A":
-            training_data[i][2] += 1
-        if contents_CoT_zero_shot_1[i] == "A":
-            training_data[i][2] += 1
-        if contents_CoT_zero_shot_2[i] == "A":
-            training_data[i][2] += 1
-        if contents_CoT_zero_shot_3[i] == "A":
-            training_data[i][2] += 1
-        if contents_CoT_one_shot_1[i] == "A":
-            training_data[i][2] += 1
-        if contents_CoT_one_shot_2[i] == "A":
-            training_data[i][2] += 1
-        if contents_CoT_one_shot_3[i] == "A":
-            training_data[i][2] += 1
-    for i in range(len(training_data)):
-        training_data[i][2] = training_data[i][2] / 15
+        training_data[i][2] = training_data[i][2] / 30
+
+    # training_data = list(filter(lambda x: x[2] <= 0.3 or x[2] >= 0.7, training_data))
     training_data = list(map(lambda x: x[0]+"_"+x[1]+"_"+f"{x[2]}", training_data))
-    output_file = "../data/finegrained/train.txt"
+    output_file = "../data/finegrained/softlabel.txt"
     
     with open(output_file, "w") as f:
         for path in training_data:
             f.write(path + "\n")
-    
+
+    #contents_1 = extract_contents_from_jsonl("../data/finegrained/original/output_1.jsonl")
+    #for i in range(len(training_data)):
+    #    if contents_1[i] == "$A$":
+    #        training_data[i][2] += 1
+    #for i in range(len(training_data)):
+        #if contents_zero_shot_1[i] == "A":
+        #    training_data[i][2] += 1
+        #if contents_zero_shot_2[i] == "A":
+        #    training_data[i][2] += 1
+        #if contents_zero_shot_3[i] == "A":
+        #    training_data[i][2] += 1
+        #if contents_one_shot_1[i] == "A":
+        #    training_data[i][2] += 1
+        #if contents_one_shot_2[i] == "A":
+        #    training_data[i][2] += 1
+        #if contents_one_shot_3[i] == "A":
+        #    training_data[i][2] += 1
+        #if contents_few_shot_1[i] == "A":
+        #    training_data[i][2] += 1
+        #if contents_few_shot_2[i] == "A":
+        #    training_data[i][2] += 1
+        #if contents_few_shot_3[i] == "A":
+        #    training_data[i][2] += 1
+        #if contents_CoT_zero_shot_1[i] == "A":
+        #    training_data[i][2] += 1
+        #if contents_CoT_zero_shot_2[i] == "A":
+        #    training_data[i][2] += 1
+        #if contents_CoT_zero_shot_3[i] == "A":
+        #    training_data[i][2] += 1
+        #if contents_CoT_one_shot_1[i] == "A":
+        #    training_data[i][2] += 1
+        #if contents_CoT_one_shot_2[i] == "A":
+        #    training_data[i][2] += 1
+        #if contents_CoT_one_shot_3[i] == "A":
+        #    training_data[i][2] += 1
+    #for i in range(len(training_data)):
+    #    training_data[i][2] = training_data[i][2] / 1
+    #training_data = list(map(lambda x: x[0]+"_"+x[1]+"_"+f"{x[2]}", training_data))
+    #output_file = "../data/finegrained/softlabel.txt"
+    #
+    #with open(output_file, "w") as f:
+    #    for path in training_data:
+    #        f.write(path + "\n")
     
 
 if __name__ == "__main__":
