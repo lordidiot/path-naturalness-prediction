@@ -33,7 +33,7 @@ all_feature_lengths = {'v_enc_onehot': 100,
 
 class Dataset:
 	def __init__(self, dataset_name, feature_names, train_test_split_fraction, gpu,
-			  		path_filename="paths.pkl", data_filename="softlabel.txt", soft_label=True):
+			  		path_filename="paths.pkl", data_filename="answers.txt", soft_label=False):
 		self.feature_names = feature_names
 		self.cached_features = dict()
 		self.gpu = gpu
@@ -151,7 +151,7 @@ class Dataset:
 				y[instance_idx] = label
 				for v_idx in range(4):
 					for v_fea_idx in range(len(v_good[v_idx])):
-						if label:
+						if not label:
 							v_features_A[v_idx][v_fea_idx][instance_idx] = v_good[v_idx][v_fea_idx]
 							v_features_B[v_idx][v_fea_idx][instance_idx] = v_bad[v_idx][v_fea_idx]
 						else:
@@ -160,7 +160,7 @@ class Dataset:
 
 				for e_idx in range(3):
 					for e_fea_idx in range(len(e_good[e_idx])):
-						if label:
+						if not label:
 							e_features_A[e_idx][e_fea_idx][instance_idx] = e_good[e_idx][e_fea_idx]
 							e_features_B[e_idx][e_fea_idx][instance_idx] = e_bad[e_idx][e_fea_idx]
 						else:
@@ -171,7 +171,7 @@ class Dataset:
 			for instance_idx in range(N):
 				# no dir / label randomisation needed, we are using soft labels, already randomised
 				A, B, score = next(self.cycled_train_pairs)
-				y[instance_idx] = score
+				y[instance_idx] = float(score)
 				v_a, e_a = self.get_features(A)
 				v_b, e_b = self.get_features(B)
 				for v_idx in range(4):
@@ -231,7 +231,7 @@ class Dataset:
 						ids[1].append(good)
 				for v_idx in range(4):
 					for v_fea_idx in range(len(v_good[v_idx])):
-						if label:
+						if not label:
 							v_features_A[v_idx][v_fea_idx][instance_idx] = v_good[v_idx][v_fea_idx]
 							v_features_B[v_idx][v_fea_idx][instance_idx] = v_bad[v_idx][v_fea_idx]
 						else:
@@ -240,7 +240,7 @@ class Dataset:
 
 				for e_idx in range(3):
 					for e_fea_idx in range(len(e_good[e_idx])):
-						if label:
+						if not label:
 							e_features_A[e_idx][e_fea_idx][instance_idx] = e_good[e_idx][e_fea_idx]
 							e_features_B[e_idx][e_fea_idx][instance_idx] = e_bad[e_idx][e_fea_idx]
 						else:
@@ -249,7 +249,7 @@ class Dataset:
 		else:
 			for instance_idx in range(N):
 				A, B, score = self.test_pairs[instance_idx]
-				y[instance_idx] = 1 if float(score) > 0.5 else 0
+				y[instance_idx] = 0 if float(score) > 0.5 else 1 # 0 for A is better, 1 for B is better
 				v_a, e_a = self.get_features(A)
 				v_b, e_b = self.get_features(B)
 				if return_id:
