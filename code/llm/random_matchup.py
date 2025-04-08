@@ -14,7 +14,7 @@ def get_random(id: str, path_data) -> Path:
 def prepare_pairs(filename: str,
                   clip: tuple[int, int],
                   out: str,
-                  against: int = 30,
+                  against: int = 60,
                   batches: int = 10,
                   ) -> list[tuple[Path, Path]]:
     with open(filename, 'rb') as f:
@@ -26,16 +26,16 @@ def prepare_pairs(filename: str,
         while i in other_keys:
             other_keys = random.sample(keys, against)
         for other_key in other_keys:
+            pairs.append((
+                get_random(key, data[key]),
+                get_random(other_key, data[other_key]),
+            ))
+
+            # # only use forward direction
             # pairs.append((
-            #     get_random(key, data[key]),
+            #     Path(id=f'{key}f', short=data[key]['forward']['short']),
             #     get_random(other_key, data[other_key]),
             # ))
-            
-            # only use forward direction
-            pairs.append((
-                Path(id=f'{key}f', short=data[key]['forward']['short']),
-                Path(id=f'{other_key}f', short=data[other_key]['forward']['short']),
-            ))
     batch_size = len(pairs) // batches
     for i in range(batches):
         out_filename = f'{out}_{i}.jsonl'
@@ -44,7 +44,7 @@ def prepare_pairs(filename: str,
             for a, b in pairs[batch_size * i:batch_size * (i + 1)]:
                 f.write(json.dumps(get_query_request_data(a, b)) + '\n')
 
-def run_science(clip: tuple[int, int], submit: bool, against: int = 30, batches: int = 10):
+def run_science(clip: tuple[int, int], submit: bool, against: int = 60, batches: int = 10):
     batch_input = "../data/science/batch_input"
     prepare_pairs(filename="../data/science/paths.pkl",
                   out=batch_input,
@@ -56,7 +56,7 @@ def run_science(clip: tuple[int, int], submit: bool, against: int = 30, batches:
             input_filename = f"{batch_input}_{i}.jsonl"
             submit_batch(input_filename, description="Science batch job on original")
 
-def run_money(clip: tuple[int, int], submit: bool, against: int = 30, batches: int = 10):
+def run_money(clip: tuple[int, int], submit: bool, against: int = 60, batches: int = 10):
     batch_input = "../data/money/batch_input"
     prepare_pairs(filename="../data/money/paths.pkl",
                   out=batch_input,
@@ -77,7 +77,7 @@ def main():
     # Change this to True to submit batch job to OpenAI
     submit = False
     # Comment out accordingly
-    run_science(clip, submit, batches=5)
+    run_science(clip, submit, batches=10)
     # run_money(clip, submit)
 
     # After this, to parse the output, download it
