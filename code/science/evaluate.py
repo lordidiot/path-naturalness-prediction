@@ -43,12 +43,13 @@ def main():
         return
     encoder_path, predictor_path = sys.argv[1:3]
 
+	# When evaluating on hard label dataset, use this
     # print(evaluate(features, feature_len, encoder_path, predictor_path,
     #                path_filename="paths.pkl", data_filename="answers.txt", soft_label=False))
     
-	# evaluate model trained with soft label data
+	# When evaluating on soft label dataset, use this
     print(evaluate(features, feature_len, encoder_path, predictor_path,
-                   path_filename="paths.pkl", data_filename="rr_answers_pairwise_softlabel.txt", soft_label=True))
+                   path_filename="paths.pkl", data_filename="answers.txt", soft_label=False))
 
 if __name__ == '__main__':
     main()
