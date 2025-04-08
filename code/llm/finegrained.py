@@ -4,6 +4,7 @@ import os
 from openai import OpenAI
 import time
 from pprint import pprint
+import random
 
 def to_path(code, data):
     id = code[:-1]
@@ -225,7 +226,7 @@ def extract_contents_from_jsonl(jsonl_file):
             elif "$B$" in content:
                 label = "$B$"
             else:
-                label = "$B$" # default to $B$ if neither is found, in 13800 instances, there are < 10 occurances
+                label = random.choice(["$A$", "$B$"])
                 count += 1
             contents.append(label)
         print(count)
