@@ -1,6 +1,6 @@
 
 from __future__ import division
-
+import matplotlib.pyplot as plt
 import numpy as np
 import torch, sys, os
 from torch import nn, optim
@@ -8,6 +8,7 @@ from torch.autograd import Variable
 from model import ChainEncoder, Predictor, PredictorSoftLabel
 from dataset import Dataset
 from multiprocessing import Pool
+import csv
 
 def train(features, fea_len, split_frac, out_file,
 		  dataset_name='science', path_filename='paths.pkl', data_filename='answers.txt', soft_label=False):
@@ -50,7 +51,7 @@ def train(features, fea_len, split_frac, out_file,
 		softmax_output = predictor(output_test_A, output_test_B).data.cpu().numpy()
 		test_y_pred = softmax_output.argmax(axis=1)
 		cur_acc = (test_y_pred==test_y).sum() / len(test_y)
-		print('test acc:', cur_acc)
+		print('iter: ', train_iter, ' test acc:', cur_acc)
 		out_file.write('%f\n'%cur_acc)
 		if train_iter%50==0:
 			torch.save(enc.state_dict(), 
@@ -68,4 +69,4 @@ features = ['v_enc_dim300', 'v_freq_freq', 'v_deg', 'v_sense', 'e_vertexsim',
 feature_len = 20
 split_frac = 0.8
 train(features, feature_len, split_frac, 'train.log',
-	  dataset_name='science', path_filename='paths.pkl', data_filename='rr_answers_pairwise_softlabel.txt', soft_label=True)
+	  		dataset_name='science', path_filename='paths.pkl', data_filename='rr_answers_pairwise_softlabel.txt', soft_label=True)
