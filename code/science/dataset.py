@@ -33,11 +33,12 @@ all_feature_lengths = {'v_enc_onehot': 100,
 
 class Dataset:
 	def __init__(self, dataset_name, feature_names, train_test_split_fraction, gpu,
-			  		path_filename="paths.pkl", data_filename="answers.txt", soft_label=False):
+			  		path_filename="paths.pkl", data_filename="answers.txt", soft_label=False, new_path_format=False):
 		self.feature_names = feature_names
 		self.cached_features = dict()
 		self.gpu = gpu
 		self.soft_label = soft_label
+		self.new_path_format = new_path_format
 		for f in feature_names:
 			print('loading '+f)
 			self.cached_features[f] = pickle.load(
@@ -46,11 +47,17 @@ class Dataset:
 			f'../../data/{dataset_name}/{path_filename}', 'rb'))
 		self.texts = dict()
 		print('loading problem plain texts')
-		for id_num in sampled_problems:
-			f_short = sampled_problems[id_num]['forward']['short']
-			r_short = sampled_problems[id_num]['reverse']['short']
-			self.texts[id_num+'f'] = f_short
-			self.texts[id_num+'r'] = r_short
+		if not new_path_format:
+			for id_num in sampled_problems:
+				f_short = sampled_problems[id_num]['forward']['short']
+				r_short = sampled_problems[id_num]['reverse']['short']
+				self.texts[id_num+'f'] = f_short
+				self.texts[id_num+'r'] = r_short
+		else:
+			for _, paths in sampled_problems.items():
+				for path in paths:
+					short = path.short()
+					self.texts[path.id] = short
 		print('loading labeled pairs')
 		self.all_pairs = [] # list of id tuples (good, bad)
 		if not soft_label:
@@ -141,7 +148,7 @@ class Dataset:
 			y = np.zeros(N, dtype='int64')
 			for instance_idx in range(N):
 				good, bad = next(self.cycled_train_pairs)
-				if randomize_dir:
+				if randomize_dir and not self.new_path_format:
 					good = good[:-1]+random.choice(['f','r'])
 					bad = bad[:-1]+random.choice(['f','r'])
 				v_good, e_good = self.get_features(good)
@@ -214,7 +221,7 @@ class Dataset:
 		if not self.soft_label:
 			for instance_idx in range(N):
 				good, bad = self.test_pairs[instance_idx]
-				if randomize_dir:
+				if randomize_dir and not self.new_path_format:
 					good = good[:-1]+random.choice(['f','r'])
 					bad = bad[:-1]+random.choice(['f','r'])
 				v_good, e_good = self.get_features(good)

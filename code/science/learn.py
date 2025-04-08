@@ -11,11 +11,11 @@ from multiprocessing import Pool
 import csv
 
 def train(features, fea_len, split_frac, out_file,
-		  dataset_name='science', path_filename='paths.pkl', data_filename='answers.txt', soft_label=False):
+		  dataset_name='science', path_filename='paths.pkl', data_filename='answers.txt', soft_label=False, new_path_format=False):
 	if isinstance(out_file, str):
 		out_file = open(out_file, 'w')
-	d = Dataset(dataset_name, features, split_frac, gpu, path_filename=path_filename, data_filename=data_filename, soft_label=soft_label)
-	print('defining architecture')
+	d = Dataset(dataset_name, features, split_frac, gpu, 
+		path_filename=path_filename, data_filename=data_filename, soft_label=soft_label, new_path_format=new_path_format)
 	enc = ChainEncoder(d.get_v_fea_len(), d.get_e_fea_len(), fea_len, 'last')
 	# New training pipeline for experiments that use win-rate soft labels: set soft_label=True
 	predictor = Predictor(fea_len) if not soft_label else PredictorSoftLabel(fea_len)
@@ -69,4 +69,5 @@ features = ['v_enc_dim300', 'v_freq_freq', 'v_deg', 'v_sense', 'e_vertexsim',
 feature_len = 20
 split_frac = 0.8
 train(features, feature_len, split_frac, 'train.log',
-	  		dataset_name='science', path_filename='paths.pkl', data_filename='rr_answers_pairwise_softlabel.txt', soft_label=True)
+	  		dataset_name='science', path_filename='paths.pkl', data_filename='rr_answers_pairwise_softlabel100.txt',
+			soft_label=True, new_path_format=False)
