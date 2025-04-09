@@ -34,23 +34,20 @@ class EloRanking:
                 matches,
             ))
 
-            expected_wins = {path: 0 for path in paths}
-            for path_a, path_b in pairs:
-                expected_wins[path_a] += round(q[path_a] / (q[path_a] + q[path_b]), 2)
-
-            actual_wins = {path: 0 for path in paths}
+            max_difference = 0
             for (path_a, path_b), outcomes in zip(pairs, answers):
+                a_expected = round(q[path_a] / (q[path_a] + q[path_b]), 2)
+                b_expected = round(q[path_b] / (q[path_a] + q[path_b]), 2)
                 answer = random.choice(outcomes)
                 if answer == 'A':
-                    actual_wins[path_a] += 1
+                    a_difference = round(self.k * (1 - a_expected))
+                    b_difference = round(self.k * (-b_expected))
                 elif answer == 'B':
-                    actual_wins[path_b] += 1
-            
-            max_difference = 0
-            for path in paths:
-                difference = round(self.k * (actual_wins[path] - expected_wins[path]))
-                scores[path] += difference
-                max_difference = max(max_difference, abs(difference))
+                    a_difference = round(self.k * (-a_expected))
+                    b_difference = round(self.k * (1 - b_expected))
+                scores[path_a] += a_difference
+                scores[path_b] += b_difference
+                max_difference = max(max_difference, abs(a_difference), abs(b_difference))
             
             if max_difference < threshold:
                 break
