@@ -39,6 +39,7 @@ if __name__ == "__main__":
     run_edge_feature_on_original(feature,
                                  "../data/money/paths.pkl",
                                  "../data/money/features/e_rel.pkl")
+                                 
     run_edge_feature_on_fixed_endpoints(feature,
                                         "../data/fixed_endpoints/money_paths_fixed_endpoints.pkl",
                                         "../data/fixed_endpoints/money_features/e_rel.pkl")
