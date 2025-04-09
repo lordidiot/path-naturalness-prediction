@@ -65,16 +65,16 @@ def main():
 if __name__ == "__main__":
     # main()
     feature = VertexDegreeFeature()
-    # run_vertex_feature_on_original(vertex_feature=feature,
-    #                                data_path="../data/science/paths.pkl",
-    #                                out="../data/science/features/v_deg.pkl")
-    # run_vertex_feature_on_original(vertex_feature=feature,
-    #                                data_path="../data/money/paths.pkl",
-    #                                out="../data/money/features/v_deg.pkl")
+    run_vertex_feature_on_original(vertex_feature=feature,
+                                   data_path="../data/science/paths.pkl",
+                                   out="../data/science/features/v_deg.pkl")
+    run_vertex_feature_on_original(vertex_feature=feature,
+                                   data_path="../data/money/paths.pkl",
+                                   out="../data/money/features/v_deg.pkl")
 
-    # run_vertex_feature_on_fixed_endpoints(vertex_feature=feature,
-    #                                     data_path="../data/fixed_endpoints/money_paths_fixed_endpoints.pkl",
-    #                                     out="../data/fixed_endpoints/money_features/v_deg.pkl")
+    run_vertex_feature_on_fixed_endpoints(vertex_feature=feature,
+                                        data_path="../data/fixed_endpoints/money_paths_fixed_endpoints.pkl",
+                                        out="../data/fixed_endpoints/money_features/v_deg.pkl")
     run_vertex_feature_on_fixed_endpoints(vertex_feature=feature,
                                         data_path="../data/fixed_endpoints/science_paths_fixed_endpoints.pkl",
                                         out="../data/fixed_endpoints/science_features/v_deg.pkl")

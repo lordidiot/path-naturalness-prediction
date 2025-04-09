@@ -56,18 +56,18 @@ def main():
 
 if __name__ == '__main__':
     # main()
-    # science_data_path = "../data/science/paths.pkl"
-    # money_data_path = "../data/money/paths.pkl"
-    # science_vertices = enumerate_vertices(science_data_path)
-    # money_vertices = enumerate_vertices(money_data_path)
-    # feature = EdgeSenseScore(science_vertices.union(money_vertices))
+    science_data_path = "../data/science/paths.pkl"
+    money_data_path = "../data/money/paths.pkl"
+    science_vertices = enumerate_vertices(science_data_path)
+    money_vertices = enumerate_vertices(money_data_path)
+    feature = EdgeSenseScore(science_vertices.union(money_vertices))
 
-    # run_vertex_feature_on_original(vertex_feature=feature,
-    #                                data_path=science_data_path,
-    #                                out="../data/science/features/e_sense.pkl")
-    # run_vertex_feature_on_original(vertex_feature=feature,
-    #                                data_path=money_data_path,
-    #                                out="../data/money/features/e_sense.pkl")
+    run_vertex_feature_on_original(vertex_feature=feature,
+                                   data_path=science_data_path,
+                                   out="../data/science/features/e_sense.pkl")
+    run_vertex_feature_on_original(vertex_feature=feature,
+                                   data_path=money_data_path,
+                                   out="../data/money/features/e_sense.pkl")
 
     fixed_endpoints_science_data_path = "../data/fixed_endpoints/science_paths_fixed_endpoints.pkl"
     fixed_endpoints_money_data_path = "../data/fixed_endpoints/money_paths_fixed_endpoints.pkl"
