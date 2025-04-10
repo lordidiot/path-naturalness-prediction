@@ -297,7 +297,7 @@ def main():
     for i in range(len(training_data)):
         training_data[i][2] = training_data[i][2] / 30
 
-    # training_data = list(filter(lambda x: x[2] <= 0.3 or x[2] >= 0.7, training_data))
+    #training_data = list(filter(lambda x: x[2] <= 0.3 or x[2] >= 0.7, training_data))
     training_data = list(map(lambda x: x[0]+"_"+x[1]+"_"+f"{x[2]}", training_data))
     output_file = "../data/finegrained/softlabel.txt"
     
