@@ -203,7 +203,7 @@ def run_vertex_feature_on_fixed_endpoints(vertex_feature: BaseVertexFeature,
                     logger.error(f"Error at key: {path.id}")
                     logger.error(e, exc_info=True)
                     continue
-                data[path.id + 'r' if isReverse else 'f'] = values
+                data[path.id + 'r' if isReverse else path.id + 'f'] = values
     with open(out, "wb") as f:
         pickle.dump(data, f)
 
@@ -246,14 +246,14 @@ def run_edge_feature_on_fixed_endpoints(edge_feature: BaseEdgeFeature,
             isReverseList = [False, True]
             for isReverse in isReverseList:
                 path_string = path.short(isReverse)
-            items = path_string.split(" ")
-            edges = [(items[i], items[i + 1], items[i + 2]) for i in range(0, len(items) - 2, 2)]
-            try:
-                values = edge_feature.calculate_batch(edges)
-            except Exception as e:
-                logger.info(f"Error at key: {path.id}")
-                logger.info(e, exc_info=True)
-                continue
-            data[path.id + 'r' if isReverse else 'f'] = values
+                items = path_string.split(" ")
+                edges = [(items[i], items[i + 1], items[i + 2]) for i in range(0, len(items) - 2, 2)]
+                try:
+                    values = edge_feature.calculate_batch(edges)
+                except Exception as e:
+                    logger.info(f"Error at key: {path.id}")
+                    logger.info(e, exc_info=True)
+                    continue
+                data[path.id + 'r' if isReverse else path.id + 'f'] = values
     with open(out, "wb") as f:
         pickle.dump(data, f)
