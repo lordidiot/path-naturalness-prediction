@@ -54,7 +54,8 @@ class ChainEncoder(nn.Module):
 		each tuple is an N x d_in Variable, in which N is the batch size, and d_in is the feature length
 		e_features is structured similarly
 		'''
-		v_features, e_features = input
+		v_features, e_features, lengths = input
+		N = v_features[0][0].size(0)
 		v_encs = []
 		for i in range(len(v_features)):
 			v_enc = None
@@ -90,7 +91,8 @@ class ChainEncoder(nn.Module):
 		elif self.rnn_type=='LSTM':
 			output, (hidden, cell) = self.lstm(combined_encs)
 		if self.pooling=='last':
-			return output[-1]
+			output = output.transpose(0, 1) # batch_size x (#V+#E) x out_length
+			return output[torch.arange(N), lengths-1]
 		else:
 			return torch.mean(output, dim=0)
 

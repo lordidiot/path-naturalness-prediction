@@ -1,7 +1,7 @@
 import numpy as np
 
 from .base_feature import BaseVertexFeature
-from .generate import run_vertex_feature_on_original, enumerate_vertices, run_vertex_feature_on_fixed_endpoints
+from .generate import run_vertex_feature_on_original, enumerate_vertices, run_vertex_feature_on_fixed_endpoints, enumerate_fixed_endpoints_vertices
 
 # <rant>The paper says they use the 840B version, but the data they
 #       uploaded corresponds to the 42B version?!?!?!?! </rant>
@@ -37,10 +37,16 @@ if __name__ == "__main__":
     run_vertex_feature_on_original(vertex_feature=feature,
                                    data_path=money_data_path,
                                    out=f"../data/money/features/{FEATURE_NAME}.pkl")
-    run_vertex_feature_on_fixed_endpoints(feature,
-                                        "../data/fixed_endpoints/money_paths_fixed_endpoints.pkl",
-                                        f"../data/fixed_endpoints/money_features/{FEATURE_NAME}.pkl")
-    run_vertex_feature_on_fixed_endpoints(feature,
-                                        "../data/fixed_endpoints/science_paths_fixed_endpoints.pkl",
-                                        f"../data/fixed_endpoints/science_features/{FEATURE_NAME}.pkl")
 
+    fixed_endpoints_science_data_path = "../data/fixed_endpoints/science_paths_fixed_endpoints.pkl"
+    fixed_endpoints_money_data_path = "../data/fixed_endpoints/money_paths_fixed_endpoints.pkl"
+    fixed_endpoints_science_vertices = enumerate_fixed_endpoints_vertices(fixed_endpoints_science_data_path)
+    fixed_endpoints_money_vertices = enumerate_fixed_endpoints_vertices(fixed_endpoints_money_data_path)
+    fixed_endpoints_feature = VertexEmbeddingFeature(fixed_endpoints_money_vertices.union(fixed_endpoints_science_vertices))
+
+    run_vertex_feature_on_fixed_endpoints(vertex_feature=fixed_endpoints_feature,
+                                        data_path=fixed_endpoints_money_data_path,
+                                        out=f"../data/fixed_endpoints/money_features/{FEATURE_NAME}.pkl")
+    run_vertex_feature_on_fixed_endpoints(vertex_feature=fixed_endpoints_feature,
+                                        data_path=fixed_endpoints_science_data_path,
+                                        out=f"../data/fixed_endpoints/science_features/{FEATURE_NAME}.pkl")
