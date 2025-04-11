@@ -21,7 +21,7 @@ all_feature_lengths = {'v_enc_onehot': 100,
 					   'v_sense': 1,
 					   'e_vertexsim': 1,
 					   'e_dir': 3,
-					   'e_rel': 35,
+					   'e_rel': 38,
 					   'e_weight': 1,
 					   'e_source': 6,
 					   'e_weightsource': 6,
@@ -57,12 +57,14 @@ class Dataset:
 			for _, paths in sampled_problems.items():
 				for path in paths:
 					short = path.short()
-					self.texts[path.id] = short
+					self.texts[path.id + 'f'] = short # For now, all paths are forward
 		print('loading labeled pairs')
 		self.all_pairs = [] # list of id tuples (good, bad)
 		if not soft_label:
 			for l in open(f'../../data/{dataset_name}/{data_filename}'):
 				first, second, good = l.strip().split('_')
+				if new_path_format:
+					first, second, good = first + 'f', second + 'f', good + 'f'
 				if first==good:
 					bad = second
 				elif second==good:
@@ -75,10 +77,6 @@ class Dataset:
 		else:
 			for l in open(f'../../data/{dataset_name}/{data_filename}'):
 				first, second, score = l.strip().split('_')
-				a_len = (len(self.texts[first].strip().split(' '))+1)/2
-				b_len = (len(self.texts[second].strip().split(' '))+1)/2
-				# if a_len!=4 or b_len!=4:
-				# continue
 				self.all_pairs.append((first, second, float(score)))
 		random.shuffle(self.all_pairs)
 		
@@ -109,6 +107,8 @@ class Dataset:
 			if f.startswith('v'):
 				v_features.append(self.cached_features[f][id])
 			else:
+				if id not in self.cached_features[f]:
+					print(f"Warning: {id} not in {f} features")
 				e_features.append(self.cached_features[f][id])
 		v_features = list(zip(*v_features))
 		e_features = list(zip(*e_features))
@@ -158,40 +158,22 @@ class Dataset:
 				good_len = len(v_good) + len(e_good)
 				bad_len = len(v_bad) + len(e_bad)
 				
-				label = random.random()>0.5
-				y[instance_idx] = label
-				if not label:
-					lengths_A.append(good_len)
-					lengths_B.append(bad_len)
-				else:
-					lengths_A.append(bad_len)
-					lengths_B.append(good_len)
-
+				y[instance_idx] = 0
+				lengths_A.append(good_len)
+				lengths_B.append(bad_len)
 				for v_idx in range(4):
 					for v_fea_idx in range(len(v_good[0])):
-						if not label:
-							if v_idx < len(v_good):
-								v_features_A[v_idx][v_fea_idx][instance_idx] = v_good[v_idx][v_fea_idx]
-							if v_idx < len(v_bad):
-								v_features_B[v_idx][v_fea_idx][instance_idx] = v_bad[v_idx][v_fea_idx]
-						else:
-							if v_idx < len(v_good):
-								v_features_B[v_idx][v_fea_idx][instance_idx] = v_good[v_idx][v_fea_idx]
-							if v_idx < len(v_bad):
-								v_features_A[v_idx][v_fea_idx][instance_idx] = v_bad[v_idx][v_fea_idx]
+						if v_idx < len(v_good):
+							v_features_A[v_idx][v_fea_idx][instance_idx] = v_good[v_idx][v_fea_idx]
+						if v_idx < len(v_bad):
+							v_features_B[v_idx][v_fea_idx][instance_idx] = v_bad[v_idx][v_fea_idx]
 
 				for e_idx in range(3):
 					for e_fea_idx in range(len(e_good[0])):
-						if not label:
-							if e_idx < len(e_good):
-								e_features_A[e_idx][e_fea_idx][instance_idx] = e_good[e_idx][e_fea_idx]
-							if e_idx < len(e_bad):
-								e_features_B[e_idx][e_fea_idx][instance_idx] = e_bad[e_idx][e_fea_idx]
-						else:
-							if e_idx < len(e_good):
-								e_features_B[e_idx][e_fea_idx][instance_idx] = e_good[e_idx][e_fea_idx]
-							if e_idx < len(e_bad):
-								e_features_A[e_idx][e_fea_idx][instance_idx] = e_bad[e_idx][e_fea_idx]
+						if e_idx < len(e_good):
+							e_features_A[e_idx][e_fea_idx][instance_idx] = e_good[e_idx][e_fea_idx]
+						if e_idx < len(e_bad):
+							e_features_B[e_idx][e_fea_idx][instance_idx] = e_bad[e_idx][e_fea_idx]
 		else:
 			y = np.zeros(N, dtype='float32')
 			for instance_idx in range(N):
@@ -258,46 +240,25 @@ class Dataset:
 				good_len = len(v_good) + len(e_good)
 				bad_len = len(v_bad) + len(e_bad)
 
-				label = random.random()>0.5
-				y[instance_idx] = label
-				if not label:
-					lengths_A.append(good_len)
-					lengths_B.append(bad_len)
-				else:
-					lengths_A.append(bad_len)
-					lengths_B.append(good_len)
+				y[instance_idx] = 0
+				lengths_A.append(good_len)
+				lengths_B.append(bad_len)
 				if return_id:
-					if not label:
-						ids[0].append(good)
-						ids[1].append(bad)
-					else:
-						ids[0].append(bad)
-						ids[1].append(good)
+					ids[0].append(good)
+					ids[1].append(bad)
 				for v_idx in range(4):
 					for v_fea_idx in range(len(v_good[0])):
-						if not label:
-							if v_idx < len(v_good):
-								v_features_A[v_idx][v_fea_idx][instance_idx] = v_good[v_idx][v_fea_idx]
-							if v_idx < len(v_bad):
-								v_features_B[v_idx][v_fea_idx][instance_idx] = v_bad[v_idx][v_fea_idx]
-						else:
-							if v_idx < len(v_good):
-								v_features_B[v_idx][v_fea_idx][instance_idx] = v_good[v_idx][v_fea_idx]
-							if v_idx < len(v_bad):
-								v_features_A[v_idx][v_fea_idx][instance_idx] = v_bad[v_idx][v_fea_idx]
+						if v_idx < len(v_good):
+							v_features_A[v_idx][v_fea_idx][instance_idx] = v_good[v_idx][v_fea_idx]
+						if v_idx < len(v_bad):
+							v_features_B[v_idx][v_fea_idx][instance_idx] = v_bad[v_idx][v_fea_idx]
 
 				for e_idx in range(3):
 					for e_fea_idx in range(len(e_good[0])):
-						if not label:
-							if e_idx < len(e_good):
-								e_features_A[e_idx][e_fea_idx][instance_idx] = e_good[e_idx][e_fea_idx]
-							if e_idx < len(e_bad):
-								e_features_B[e_idx][e_fea_idx][instance_idx] = e_bad[e_idx][e_fea_idx]
-						else:
-							if e_idx < len(e_good):
-								e_features_B[e_idx][e_fea_idx][instance_idx] = e_good[e_idx][e_fea_idx]
-							if e_idx < len(e_bad):
-								e_features_A[e_idx][e_fea_idx][instance_idx] = e_bad[e_idx][e_fea_idx]
+						if e_idx < len(e_good):
+							e_features_A[e_idx][e_fea_idx][instance_idx] = e_good[e_idx][e_fea_idx]
+						if e_idx < len(e_bad):
+							e_features_B[e_idx][e_fea_idx][instance_idx] = e_bad[e_idx][e_fea_idx]
 		else:
 			for instance_idx in range(N):
 				A, B, score = self.test_pairs[instance_idx]
