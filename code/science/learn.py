@@ -69,5 +69,5 @@ features = ['v_enc_dim300', 'v_freq_freq', 'v_deg', 'v_sense', 'e_vertexsim',
 feature_len = 20
 split_frac = 0.8
 train(features, feature_len, split_frac, 'train.log',
-	  		dataset_name='science', path_filename='paths.pkl', data_filename='rr_answers_pairwise_softlabel100.txt',
+	  		dataset_name='science', path_filename='paths.pkl', data_filename='elo_ranking_pair_softlabel.txt',
 			soft_label=True, new_path_format=False)

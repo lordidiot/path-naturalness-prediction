@@ -90,4 +90,5 @@ def rr_ans_to_soft_label(dir_name: str, file_name: str, out: str):
 
 if __name__ == '__main__':
 	# rr_ans_to_soft_label('data/money', 'rr_answers.txt', 'rr_answers_softlabel.txt')
-	generate_soft_label_pair_samples('data/money', 'rr_answers_softlabel.txt', 'rr_answers_pairwise_softlabel.txt', 30, mode='rr')
+	# generate_soft_label_pair_samples('data/money', 'rr_answers_softlabel.txt', 'rr_answers_pairwise_softlabel.txt', 30, mode='rr')
+	generate_soft_label_pair_samples('data/science', 'elo_ranking_softlabel.txt', 'elo_ranking_pair_softlabel.txt', 30)
