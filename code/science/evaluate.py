@@ -9,9 +9,13 @@ from dataset import Dataset
 from multiprocessing import Pool
 
 gpu = False
-def evaluate(features, fea_len, encoder_path, predictor_path,
-			path_filename="paths.pkl", data_filename="answers.txt", soft_label=False, new_path_format=False):
-	d = Dataset('money', features, 0, gpu,
+def evaluate(features, fea_len, encoder_path, predictor_path, dataset_name,
+			 path_filename="paths.pkl", data_filename="answers.txt",
+			 soft_label=False, new_path_format=False, random_seed=42):
+	# Fix random seed for reproducibility
+	np.random.seed(random_seed)	
+	torch.manual_seed(random_seed)
+	d = Dataset(dataset_name, features, 0, gpu,
 	path_filename=path_filename, data_filename=data_filename, soft_label=soft_label, new_path_format=new_path_format)
 	enc = ChainEncoder(d.get_v_fea_len(), d.get_e_fea_len(), fea_len, 'last')
 	enc.load_state_dict(torch.load(encoder_path))
@@ -32,12 +36,18 @@ def evaluate(features, fea_len, encoder_path, predictor_path,
 		cur_acc = (test_y_pred==test_y).sum() / len(test_y)
 		return cur_acc
 
-def main():
-	# Removed 'e_srank_rel', 'e_trank_rel'
-	features = ['v_enc_dim300', 'v_freq_freq', 'v_deg', 'v_sense', 'e_vertexsim',
-		'e_dir', 'e_rel', 'e_weightsource', 'e_sense']
-	feature_len = 20
+###################################j
+# [!] EVALUATION CONFIGURATION [!] #
+####################################
+DATASET_NAME = "science"
+DATA_FILENAME = "human_eval_answers.txt"
+PATH_FILENAME = "paths.pkl"
+SOFT_LABEL = False
+NEW_PATH_FORMAT = False
+FEATURE_LEN = 20
+FEATURES = ['v_enc_dim300', 'v_freq_freq', 'v_deg', 'v_sense', 'e_vertexsim', 'e_dir', 'e_rel', 'e_weightsource', 'e_sense']
 
+def main():
 	if len(sys.argv) < 3:
 		print(f"Usage: {sys.argv[0]} <encoder.model> <predictor.model>")
 		return
@@ -50,20 +60,23 @@ def main():
 				encoder_path = f"ckpt/{epoc}_encoder.model"
 				predictor_path = f"ckpt/{epoc}_predictor.model"
 				print(f"Evaluating {encoder_path} and {predictor_path}")
-				acc = evaluate(features, feature_len, encoder_path, predictor_path,
-						 path_filename="paths.pkl", data_filename="answers.txt", soft_label=False, new_path_format=False)
+				acc = evaluate(FEATURES, FEATURE_LEN, encoder_path, predictor_path, DATASET_NAME,
+						       path_filename=PATH_FILENAME, data_filename=DATA_FILENAME,
+							   soft_label=SOFT_LABEL, new_path_format=NEW_PATH_FORMAT)
 				f.write(f'{acc}\n')
 				epoc += 50
 			encoder_path = "ckpt/final_encoder.model"
 			predictor_path = "ckpt/final_predictor.model"
-			acc = evaluate(features, feature_len, encoder_path, predictor_path,
-						 path_filename="paths.pkl", data_filename="answers.txt", soft_label=False, new_path_format=False)
+			acc = evaluate(FEATURES, FEATURE_LEN, encoder_path, predictor_path, DATASET_NAME,
+						   path_filename=PATH_FILENAME, data_filename=DATA_FILENAME,
+						   soft_label=SOFT_LABEL, new_path_format=NEW_PATH_FORMAT)
 			f.write(f'{acc}\n')
 			return
 
 	# When evaluating on hard label dataset, use this
-	print(evaluate(features, feature_len, encoder_path, predictor_path,
-				   path_filename="paths.pkl", data_filename="answers.txt", soft_label=False, new_path_format=False))
+	print(evaluate(FEATURES, FEATURE_LEN, encoder_path, predictor_path, DATASET_NAME,
+				   path_filename=PATH_FILENAME, data_filename=DATA_FILENAME,
+				   soft_label=SOFT_LABEL, new_path_format=NEW_PATH_FORMAT))
 	
 	# When evaluating on soft label dataset, use this
 	# print(evaluate(features, feature_len, encoder_path, predictor_path,

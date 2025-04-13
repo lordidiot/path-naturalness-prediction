@@ -32,8 +32,11 @@ all_feature_lengths = {'v_enc_onehot': 100,
 					   'e_sense': 1}
 
 class Dataset:
-	def __init__(self, dataset_name, feature_names, train_test_split_fraction, gpu,
-			  		path_filename="paths.pkl", data_filename="answers.txt", soft_label=False, new_path_format=False):
+	def __init__(self, dataset_name, feature_names,
+			  	train_test_split_fraction, gpu,
+			  	path_filename="paths.pkl", data_filename="answers.txt",
+				soft_label=False, new_path_format=False, random_seed=42):
+		self.random = random.Random(random_seed) # Don't use the global random
 		self.feature_names = feature_names
 		self.cached_features = dict()
 		self.gpu = gpu
@@ -78,7 +81,7 @@ class Dataset:
 			for l in open(f'../../data/{dataset_name}/{data_filename}'):
 				first, second, score = l.strip().split('_')
 				self.all_pairs.append((first, second, float(score)))
-		random.shuffle(self.all_pairs)
+		self.random.shuffle(self.all_pairs)
 		
 
 		split = int(train_test_split_fraction*len(self.all_pairs))
@@ -151,8 +154,8 @@ class Dataset:
 			for instance_idx in range(N):
 				good, bad = next(self.cycled_train_pairs)
 				if randomize_dir and not self.new_path_format:
-					good = good[:-1]+random.choice(['f','r'])
-					bad = bad[:-1]+random.choice(['f','r'])
+					good = good[:-1]+self.random.choice(['f','r'])
+					bad = bad[:-1]+self.random.choice(['f','r'])
 				v_good, e_good = self.get_features(good)
 				v_bad, e_bad = self.get_features(bad)
 				good_len = len(v_good) + len(e_good)
@@ -233,8 +236,8 @@ class Dataset:
 			for instance_idx in range(N):
 				good, bad = self.test_pairs[instance_idx]
 				if randomize_dir and not self.new_path_format:
-					good = good[:-1]+random.choice(['f','r'])
-					bad = bad[:-1]+random.choice(['f','r'])
+					good = good[:-1]+self.random.choice(['f','r'])
+					bad = bad[:-1]+self.random.choice(['f','r'])
 				v_good, e_good = self.get_features(good)
 				v_bad, e_bad = self.get_features(bad)
 				good_len = len(v_good) + len(e_good)

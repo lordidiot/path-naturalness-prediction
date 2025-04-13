@@ -9,7 +9,11 @@ from dataset import Dataset
 from multiprocessing import Pool
 
 def train(features, fea_len, split_frac, out_file,
-		  dataset_name='science', path_filename='paths.pkl', data_filename='answers.txt', soft_label=False, new_path_format=False):
+		  dataset_name='science', path_filename='paths.pkl', data_filename='answers.txt',
+		  soft_label=False, new_path_format=False, random_seed=42):
+	# Fix random seed for reproducibility
+	np.random.seed(random_seed)	
+	torch.manual_seed(random_seed)
 	if isinstance(out_file, str):
 		out_file = open(out_file, 'w')
 	d = Dataset(dataset_name, features, split_frac, gpu, 
@@ -64,12 +68,19 @@ def train(features, fea_len, split_frac, out_file,
 	torch.save(predictor.state_dict(), 'ckpt/final_predictor.model')
 	out_file.close()
 
+##################################
+# [!] TRAINING CONFIGURATION [!] #
+##################################
+DATASET_NAME = "science"
+DATA_FILENAME = "human_train_answers.txt"
+PATH_FILENAME = "paths.pkl"
+SOFT_LABEL = False
+NEW_PATH_FORMAT = False
+FEATURE_LEN = 20
+SPLIT_FRAC = 0.8 / (0.8 + 0.1) # train / (train + test), eval on 0.1
+FEATURES = ['v_enc_dim300', 'v_freq_freq', 'v_deg', 'v_sense', 'e_vertexsim', 'e_dir', 'e_rel', 'e_weightsource', 'e_sense']
+
 gpu = False
-# Removed 'e_srank_rel', 'e_trank_rel'
-features = ['v_enc_dim300', 'v_freq_freq', 'v_deg', 'v_sense', 'e_vertexsim', 
-	'e_dir', 'e_rel', 'e_weightsource', 'e_sense']
-feature_len = 20
-split_frac = 0.8
-train(features, feature_len, split_frac, 'train.log',
-	  		dataset_name='science', path_filename='paths.pkl', data_filename='llm_answers_2.txt',
-			soft_label=False, new_path_format=False)
+train(FEATURES, FEATURE_LEN, SPLIT_FRAC, 'train.log',
+	  dataset_name=DATASET_NAME, path_filename=PATH_FILENAME, data_filename=DATA_FILENAME,
+	  soft_label=SOFT_LABEL, new_path_format=NEW_PATH_FORMAT)
