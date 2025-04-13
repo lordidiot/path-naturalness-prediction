@@ -39,8 +39,8 @@ def evaluate(features, fea_len, encoder_path, predictor_path, dataset_name,
 ###################################j
 # [!] EVALUATION CONFIGURATION [!] #
 ####################################
-DATASET_NAME = "science"
-DATA_FILENAME = "human_eval_answers.txt"
+DATASET_NAME = "money"
+DATA_FILENAME = "answers.txt"
 PATH_FILENAME = "paths.pkl"
 SOFT_LABEL = False
 NEW_PATH_FORMAT = False

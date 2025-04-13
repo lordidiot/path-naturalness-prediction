@@ -221,13 +221,23 @@ def extract_contents_from_jsonl(jsonl_file):
                 continue  # skip empty lines
             record = json.loads(line)
             content = record["response"]["body"]["choices"][0]["message"]["content"]
-            if "$A$" in content:
-                label = "$A$"
-            elif "$B$" in content:
-                label = "$B$"
+            if len(content) < 4:
+                if "<A>" in content:
+                    label = "$A$"
+                elif "<B>" in content:
+                    label = "$B$"
+                else:
+                    label = random.choice(["$A$", "$B$"])
+                    count += 1
             else:
-                label = random.choice(["$A$", "$B$"])
-                count += 1
+                if "$A$" in content or "$a$" in content or "A$" in content or "A\n$" in content or "A\n\n$" in content or "$\text{A}$" in content or "\( A \)" in content:
+                    label = "$A$"
+                elif "$B$" in content or "$b$" in content or "B$" in content or "B\n$" in content or "B\n\n$" in content or "$\text{B}$" in content or "\( B \)" in content:
+                    label = "$B$"
+                else:
+                    #print(content)
+                    label = random.choice(["$A$", "$B$"])
+                    count += 1
             contents.append(label)
         print(count)
     return contents

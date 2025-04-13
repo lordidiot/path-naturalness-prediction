@@ -72,9 +72,9 @@ def train(features, fea_len, split_frac, out_file,
 # [!] TRAINING CONFIGURATION [!] #
 ##################################
 DATASET_NAME = "science"
-DATA_FILENAME = "human_train_answers.txt"
+DATA_FILENAME = "../finegrained/softlabel.txt"
 PATH_FILENAME = "paths.pkl"
-SOFT_LABEL = False
+SOFT_LABEL = True
 NEW_PATH_FORMAT = False
 FEATURE_LEN = 20
 SPLIT_FRAC = 0.8 / (0.8 + 0.1) # train / (train + test), eval on 0.1
