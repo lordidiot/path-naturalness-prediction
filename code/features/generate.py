@@ -141,11 +141,27 @@ def load_fixed_endpoints(filename) -> dict[tuple[str, str], list[Path]]:
         data: dict[tuple[str, str], list[Path]] = pickle.load(f)
         return data
 
+def enumerate_fixed_endpoints_vertices(data_path: str) -> set[str]:
+    """
+    Enumerates all the vertices in the fixed endpoints dataset.
+
+    Parameters
+    ---
+    data_path: str
+        The path to the fixed endpoints dataset. Example: `../data/fixed_endpoints/science_paths_fixed_endpoints.pkl`
+    """
+    data = load_fixed_endpoints(data_path)
+    vertices = set()
+    for paths in data.values():
+        for path in paths:
+            vertices.update(node.name.lower() for node in path.node_list)
+    return vertices
+
 def run_vertex_feature_on_fixed_endpoints(vertex_feature: BaseVertexFeature,
                                    data_path: str,
                                    out: str) -> None:
     """
-    Generates data for a vertex feature on the original dataset.
+    Generates data for a vertex feature from the fixed endpoint dataset.
     The generated data is in pickle format and has the following type:
 
     ```
@@ -168,14 +184,14 @@ def run_vertex_feature_on_fixed_endpoints(vertex_feature: BaseVertexFeature,
     vertex_feature: BaseVertexFeature
         The vertex feature to generate data for.
     data_path: str
-        The path to the original dataset. Example: `../data/science/paths.pkl`
+        The path to the fixed endpoints dataset. Example: `../data/fixed_endpoints/science_paths_fixed_endpoints.pkl`
     out: str
-        The path to save the generated data. Example: `../data/science/features/v_freq.pkl`
+        The path to save the generated data. Example: `../data/fixed_endpoints/science_features/v_freq.pkl`
     """
     logger = _get_logger()
     data: dict[str, list[list[float]]] = dict()
     dataset = load_fixed_endpoints(data_path)
-    for _, paths in tqdm(dataset.items()):
+    for paths in tqdm(dataset.values()):
         for path in paths:
             isReverseList = [False, True]
             for isReverse in isReverseList:
@@ -187,7 +203,7 @@ def run_vertex_feature_on_fixed_endpoints(vertex_feature: BaseVertexFeature,
                     logger.error(f"Error at key: {path.id}")
                     logger.error(e, exc_info=True)
                     continue
-                data[path.id + 'r' if isReverse else 'f'] = values
+                data[path.id + 'r' if isReverse else path.id + 'f'] = values
     with open(out, "wb") as f:
         pickle.dump(data, f)
 
@@ -195,7 +211,7 @@ def run_edge_feature_on_fixed_endpoints(edge_feature: BaseEdgeFeature,
                                  data_path: str,
                                  out: str) -> None:
     """
-    Generates data for an edge feature on the original dataset.
+    Generates data for an edge feature from the fixed endpoints dataset.
     The generated data is in pickle format and has the following type:
 
     ```
@@ -218,26 +234,26 @@ def run_edge_feature_on_fixed_endpoints(edge_feature: BaseEdgeFeature,
     edge_feature: BaseEdgeFeature
         The edge feature to generate data for.
     data_path: str
-        The path to the original dataset. Example: `../data/science/paths.pkl`
+        The path to the fixed endpoints dataset. Example: `../data/fixed_endpoints/science_paths_fixed_endpoints.pkl`
     out: str
-        The path to save the generated data. Example: `../data/science/features/e_dir.pkl`
+        The path to save the generated data. Example: `../data/fixed_endpoints/science_features/e_dir.pkl`
     """
     logger = _get_logger()
     data: dict[str, list[list[float]]] = dict()
     dataset = load_fixed_endpoints(data_path)
-    for _, paths in tqdm(dataset.items()):
+    for paths in tqdm(dataset.values()):
         for path in paths:
             isReverseList = [False, True]
             for isReverse in isReverseList:
                 path_string = path.short(isReverse)
-            items = path_string.split(" ")
-            edges = [(items[i], items[i + 1], items[i + 2]) for i in range(0, len(items) - 2, 2)]
-            try:
-                values = edge_feature.calculate_batch(edges)
-            except Exception as e:
-                logger.info(f"Error at key: {path.id}")
-                logger.info(e, exc_info=True)
-                continue
-            data[path.id + 'r' if isReverse else 'f'] = values
+                items = path_string.split(" ")
+                edges = [(items[i], items[i + 1], items[i + 2]) for i in range(0, len(items) - 2, 2)]
+                try:
+                    values = edge_feature.calculate_batch(edges)
+                except Exception as e:
+                    logger.info(f"Error at key: {path.id}")
+                    logger.info(e, exc_info=True)
+                    continue
+                data[path.id + 'r' if isReverse else path.id + 'f'] = values
     with open(out, "wb") as f:
         pickle.dump(data, f)

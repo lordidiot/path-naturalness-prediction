@@ -5,6 +5,7 @@ import numpy as np
 import torch
 from torch import nn
 from torch.autograd import Variable
+from transformer import Transformer
 
 class FeatureTransformer(nn.Module):
 	'''
@@ -46,6 +47,15 @@ class ChainEncoder(nn.Module):
 		elif self.rnn_type=='LSTM':
 			self.lstm = nn.LSTM(input_size=feature_enc_length,
 				hidden_size=out_length, num_layers=num_layers)
+		elif self.rnn_type=='TRANSFORMER':
+			self.transformer = Transformer(
+				d_model=feature_enc_length,
+				num_heads=1,
+				num_layers=num_layers,
+				d_ff=feature_enc_length*2,
+				max_seq_length=7,
+				dropout=0.1,
+			)
 
 	def forward(self, input):
 		'''
@@ -54,7 +64,8 @@ class ChainEncoder(nn.Module):
 		each tuple is an N x d_in Variable, in which N is the batch size, and d_in is the feature length
 		e_features is structured similarly
 		'''
-		v_features, e_features = input
+		v_features, e_features, lengths = input
+		N = v_features[0][0].size(0)
 		v_encs = []
 		for i in range(len(v_features)):
 			v_enc = None
@@ -89,8 +100,13 @@ class ChainEncoder(nn.Module):
 			output, hidden = self.rnn(combined_encs)
 		elif self.rnn_type=='LSTM':
 			output, (hidden, cell) = self.lstm(combined_encs)
+		elif self.rnn_type=='TRANSFORMER':
+			combined_encs = combined_encs.transpose(0, 1) # batch_size x (#V+#E) x out_length
+			output = self.transformer(combined_encs, lengths)
+			return output
 		if self.pooling=='last':
-			return output[-1]
+			output = output.transpose(0, 1) # batch_size x (#V+#E) x out_length
+			return output[torch.arange(N), lengths-1]
 		else:
 			return torch.mean(output, dim=0)
 

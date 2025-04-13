@@ -1,6 +1,5 @@
 
 from __future__ import division
-import matplotlib.pyplot as plt
 import numpy as np
 import torch, sys, os
 from torch import nn, optim
@@ -8,7 +7,6 @@ from torch.autograd import Variable
 from model import ChainEncoder, Predictor, PredictorSoftLabel
 from dataset import Dataset
 from multiprocessing import Pool
-import csv
 
 def train(features, fea_len, split_frac, out_file,
 		  dataset_name='science', path_filename='paths.pkl', data_filename='answers.txt', soft_label=False, new_path_format=False):
@@ -28,6 +26,7 @@ def train(features, fea_len, split_frac, out_file,
 	optimizer = optim.Adam(list(enc.parameters())+list(predictor.parameters()))
 
 	print('training')
+	enc.train()
 	test_chain_A, test_chain_B, test_y = d.get_test_pairs()
 	test_y = test_y.data.cpu().numpy()
 	for train_iter in range(4000):
@@ -46,18 +45,21 @@ def train(features, fea_len, split_frac, out_file,
 
 		enc.zero_grad()
 		predictor.zero_grad()
-		output_test_A = enc(test_chain_A)
-		output_test_B = enc(test_chain_B)
-		softmax_output = predictor(output_test_A, output_test_B).data.cpu().numpy()
-		test_y_pred = softmax_output.argmax(axis=1)
-		cur_acc = (test_y_pred==test_y).sum() / len(test_y)
-		print('iter: ', train_iter, ' test acc:', cur_acc)
-		out_file.write('%f\n'%cur_acc)
-		if train_iter%50==0:
-			torch.save(enc.state_dict(), 
-				'ckpt/%i_encoder.model'%train_iter)
-			torch.save(predictor.state_dict(), 
-				'ckpt/%i_predictor.model'%train_iter)
+		with torch.no_grad():
+			enc.eval()
+			output_test_A = enc(test_chain_A)
+			output_test_B = enc(test_chain_B)
+			softmax_output = predictor(output_test_A, output_test_B).data.cpu().numpy()
+			test_y_pred = softmax_output.argmax(axis=1)
+			cur_acc = (test_y_pred==test_y).sum() / len(test_y)
+			print('iter: ', train_iter, ' test acc:', cur_acc)
+			out_file.write('%f\n'%cur_acc)
+			if train_iter%50==0:
+				torch.save(enc.state_dict(), 
+					'ckpt/%i_encoder.model'%train_iter)
+				torch.save(predictor.state_dict(), 
+					'ckpt/%i_predictor.model'%train_iter)
+		enc.train()
 	torch.save(enc.state_dict(), 'ckpt/final_encoder.model')
 	torch.save(predictor.state_dict(), 'ckpt/final_predictor.model')
 	out_file.close()
@@ -69,5 +71,5 @@ features = ['v_enc_dim300', 'v_freq_freq', 'v_deg', 'v_sense', 'e_vertexsim',
 feature_len = 20
 split_frac = 0.8
 train(features, feature_len, split_frac, 'train.log',
-	  		dataset_name='science', path_filename='paths.pkl', data_filename='rr_answers_pairwise_softlabel100.txt',
-			soft_label=True, new_path_format=False)
+	  		dataset_name='science', path_filename='paths.pkl', data_filename='llm_answers_2.txt',
+			soft_label=False, new_path_format=False)
