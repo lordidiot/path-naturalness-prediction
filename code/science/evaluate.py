@@ -12,7 +12,7 @@ from multiprocessing import Pool
 gpu = False
 def evaluate(features, fea_len, encoder_path, predictor_path,
              path_filename="paths.pkl", data_filename="answers.txt", soft_label=False):
-	d = Dataset('money', features, 0, gpu, path_filename=path_filename, data_filename=data_filename, soft_label=soft_label)
+	d = Dataset('science', features, 0, gpu, path_filename=path_filename, data_filename=data_filename, soft_label=soft_label)
 	enc = ChainEncoder(d.get_v_fea_len(), d.get_e_fea_len(), fea_len, 'last')
 	enc.load_state_dict(torch.load(encoder_path))
 	predictor = Predictor(fea_len) if not soft_label else PredictorSoftLabel(fea_len)
