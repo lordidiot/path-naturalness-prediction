@@ -11,7 +11,7 @@ from multiprocessing import Pool
 import csv
 
 def train(features, fea_len, split_frac, out_file,
-		  dataset_name='science', path_filename='paths.pkl', data_filename='answers.txt', soft_label=False):
+		  dataset_name='money', path_filename='paths.pkl', data_filename='answers.txt', soft_label=False):
 	if isinstance(out_file, str):
 		out_file = open(out_file, 'w')
 	d = Dataset(dataset_name, features, split_frac, gpu, path_filename=path_filename, data_filename=data_filename, soft_label=soft_label)
@@ -67,6 +67,6 @@ gpu = False
 features = ['v_enc_dim300', 'v_freq_freq', 'v_deg', 'v_sense', 'e_vertexsim', 
 	'e_dir', 'e_rel', 'e_weightsource', 'e_sense']
 feature_len = 20
-split_frac = 0.999
+split_frac = 0.8
 train(features, feature_len, split_frac, 'train.log',
 	  		dataset_name='science', path_filename='paths.pkl', data_filename='../finegrained/softlabel.txt', soft_label=True)
