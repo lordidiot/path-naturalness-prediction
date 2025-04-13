@@ -15,7 +15,7 @@ def _sample_pairs_fairly_from_entries(entries: list, num_occurrences_per_entry: 
 	for e in tqdm(entries):
 		count = 0
 		while count < num_occurrences_per_entry:
-			if len(possible_positions) < 5:
+			if len(possible_positions) < 15:
 				# handle edge case where last path must form pair with itself
 				has_other_path_to_pair = False
 				for remaining_pos in possible_positions:
@@ -89,5 +89,5 @@ def rr_ans_to_soft_label(dir_name: str, file_name: str, out: str):
 			f.write(f'{id}_{score}\n')
 
 if __name__ == '__main__':
-	# rr_ans_to_soft_label('data/money', 'rr_answers.txt', 'rr_answers_softlabel.txt')
-	generate_soft_label_pair_samples('data/money', 'rr_answers_softlabel.txt', 'rr_answers_pairwise_softlabel.txt', 30, mode='rr')
+	# rr_ans_to_soft_label('data/science', 'rr_answers.txt', 'rr_answers_softlabel.txt')
+	generate_soft_label_pair_samples('data/science', 'rr_answers_softlabel.txt', 'rr_answers_pairwise_softlabel_60_100.txt', 100, mode='rr')
