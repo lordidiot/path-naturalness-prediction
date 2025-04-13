@@ -207,6 +207,121 @@ Explain first, then wrap your answer in $ (e.g. $A$ or $B$).
                 json.dump(data, f)
                 f.write("\n")
             i += 1
+    elif name == "CoT_few_shot_1":
+        i = 0
+        system_prompt = "You are a student asked to compare the naturalness of two paths and output which one is more natural, for the naturalness of ConceptNet research. You must eventually wrap your answer in $$ (e.g. $A$ or $B$)."
+        for pairs in rows:
+            user_prompt = f"""
+<A> Avenue --[IsA]--> Street <--[RelatedTo]--> Car --[UsedFor]--> Fun
+<B> Town --[AtLocation]--> Country <--[AtLocation]-- State <--[IsA]-- Office
+(Break Down) 
+<A>
+"Avenue --[IsA]--> Street": Avenue is roughly a synonym of Street. We have the Seventh Avenue in Manhattan. It is a busy street.
+"Street <--[RelatedTo]--> Car": Yeah indeed. Busy streets in city got so many cars.
+"Car --[UsedFor]--> Fun": Emmmm...right. Cars can be used for travel and travel is fun. But cars is not always used for travel. Hmmmmm, a bit weird.
+<B>
+"Town --[AtLocation]--> Country": A town is in a country...? Nation? Oh, you mean the countryside area. Country road take me home...Ok, a bit weird but fair enough.
+"Country <--[AtLocation]-- State": State at country...? Still the countryside? Oh, country here means nation now. And states are not those physics states but the states of the US, for example. Fair enough.
+"State <--[IsA]-- Office": How is office a state? Office, state...is there an office mode and non-office mode? Super weird.
+(Synthesis) Ok, seems I made more stops when analysing naturalness of B, I will choose A to be the more natural one indeed.
+(Answer) $A$
+
+
+<A> Office <--RelatedTo--> Day <--RelatedTo--> Sun <--RelatedTo--> Molecule
+<B> Step <--RelatedTo--> Surface <--RelatedTo--> Level <--RelatedTo--> Hill
+(Break Down)
+<A>
+"Office <--RelatedTo--> Day": Emmmm...Oh, office is usually open at day time. And probably we can say a work day is an office day. But the "related to" one is a bit weird.
+"Day <--RelatedTo--> Sun": Yes! Sun appears at Day time! No issue.
+"Sun <--RelatedTo--> Molecule": Hmmmm...Sun is not a molecule...How are they related? Those cosmic fantasy are in my head...Maybe our universe is a giant molecule? Oh, I think about a realistic connection——sun creates energy for molecules to undergo reactions. Hmmm but this relation is still a bit weird to me.
+<B>
+"Step <--RelatedTo--> Surface": Emmm...Oh, step can be a verb. One can step onto a flat surface, like climbing stairs. Fair enough.
+"Surface <--RelatedTo--> Level": Yeah, I got several interpretations in my head. At surface level, blah blah. Also, the surface is level means the surface is flat. "Related to" is a bit ambiguous though.
+"Level <--RelatedTo--> Hill": Emmm ok! Hills got levels (aka their heights). And some top of the hill is level (flat). Fair enough. 
+(Synthesis) Ok, these two both got me stop for a short while. But the sun related to molecule one is really hard to draw realistic connection. I will choose B to be the more natural one indeed.
+(Answer) $B$
+
+
+<A> Paper <--[RelatedTo]-- Card <--[RelatedTo]-- Unit <--[IsA]-- Molecule
+<B> Instrument --[Causes]--> Job <--[RelatedTo]-- Office <--[RelatedTo]--> Type
+(Break Down) 
+<A>
+"Instrument --[Causes]--> Job": Emmmm...what? What does instruments mean? What type of gudgets? Music instrument? Musicians today are usually jobless though...And it is not causing a job to happen. Getting a job causes the buying of instrument.
+"Job <--[RelatedTo]-- Office": Yeah very closely related! The future of all coders...
+"Office <--[RelatedTo]--> Type": Emmmm....huh? What office? What type? Good office, bad office...But everything can have a type, which makes this relationship lame and strange.
+<B>
+"Paper <--[RelatedTo]-- Card": Yes. Paper can be used to make card. So they are somewhat related! Pocke cards are flying around my head now.
+"Card <--[RelatedTo]-- Unit": Emmmm...what? Oh, maybe a card is a unit in a card-based game. Can a card be a measurable unit though...Emmm no. Yeah this relationship can work, but it is a bit strange. 
+"Unit <--[IsA]-- Molecule": Yes! Molecule is indeed a unit of structures and life! Hopefully I have not forget about my secondary school biology knowledge.
+(Synthesis) Ok, seems I made more stops when analysing naturalness of A, I will choose B to be the more natural one indeed.
+(Answer) $B$
+
+
+<A> Source <--RelatedTo--> Sun --UsedFor--> Life <--RelatedTo--> People
+<B> Nation <--RelatedTo--> Land <--Desires-- Person <--IsA-- Job
+(Break Down) 
+<A>
+"Source <--RelatedTo--> Sun": Emm yeah! Sun is the source of energy! They are related.
+"Sun --UsedFor--> Life": Indeed, solar power is fantastic! Solar panels are flying in my head...Ohh yeah, and photosynthesis! 
+"Life <--RelatedTo--> People": Well, "related to" is a bit ambiguous but...yeah, people care about their life.
+<B>
+"Nation <--RelatedTo--> Land": Yes! Land is crucial to the survival of a nation! Trump is such a crazy person that he even wants to buy Greenland. Crazy.
+"Land <--Desires-- Person": Yes. Modern people do desire a land to live. And what the ancient governments want most is the land. Land is indeed something humans want a lot.
+"Person <--IsA-- Job": Emmmm...what? Job is...a person? Is that a cartoon or something...Maybe the direction is wrong. But wait, person is also not a job what. Rideculous relation.
+(Synthesis) Ok, the "Person <--IsA-- Job" one really itches me a lot. I will choose A to be the more natural one!
+(Answer) $A$
+
+
+<A> {pairs[0]}
+<B> {pairs[1]}
+(Break Down)
+<A>
+<B>
+(Synthesis)
+(Answer)
+"""   
+            data = {
+                "custom_id": f"R{i}",
+                "method": "POST",
+                "url": "/v1/chat/completions",
+                "body": {
+                    "model": "gpt-4o-mini",
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ]
+                }
+            }
+            with open(f"../data/finegrained/{name}/request.jsonl", "a") as f:
+                json.dump(data, f)
+                f.write("\n")
+            i += 1
+    elif name == "original_o3mini":
+        i = 0
+        for pairs in rows:
+            user_prompt = f"""
+Which of the following paths connecting two concepts is the most natural?
+
+A) {pairs[0]}
+B) {pairs[1]}
+
+Explain first, then wrap your answer in $ (e.g. $A$ or $B$).
+"""
+            data = {
+                "custom_id": f"R{i}",
+                "method": "POST",
+                "url": "/v1/chat/completions",
+                "body": {
+                    "model": "o3-mini",
+                    "messages": [
+                        {"role": "user", "content": user_prompt}
+                    ]
+                }
+            }
+            with open(f"../data/finegrained/{name}/request.jsonl", "a") as f:
+                json.dump(data, f)
+                f.write("\n")
+            i += 1
 
         
 
@@ -221,13 +336,23 @@ def extract_contents_from_jsonl(jsonl_file):
                 continue  # skip empty lines
             record = json.loads(line)
             content = record["response"]["body"]["choices"][0]["message"]["content"]
-            if "$A$" in content:
-                label = "$A$"
-            elif "$B$" in content:
-                label = "$B$"
+            if len(content) < 4:
+                if "<A>" in content:
+                    label = "$A$"
+                elif "<B>" in content:
+                    label = "$B$"
+                else:
+                    label = random.choice(["$A$", "$B$"])
+                    count += 1
             else:
-                label = random.choice(["$A$", "$B$"])
-                count += 1
+                if "$A$" in content or "$a$" in content or "A$" in content or "A\n$" in content or "A\n\n$" in content or "$\text{A}$" in content or "\( A \)" in content:
+                    label = "$A$"
+                elif "$B$" in content or "$b$" in content or "B$" in content or "B\n$" in content or "B\n\n$" in content or "$\text{B}$" in content or "\( B \)" in content:
+                    label = "$B$"
+                else:
+                    #print(content)
+                    label = random.choice(["$A$", "$B$"])
+                    count += 1
             contents.append(label)
         print(count)
     return contents
@@ -250,25 +375,26 @@ def main():
     # prepare_data("CoT_one_shot", rows)
     # prepare_data("few-shot", rows)
     # prepare_data("original", rows)
-
-    #client = OpenAI()
-    #with open("../data/finegrained/original/request.jsonl", 'rb') as f:
-    #    batch_input_file = client.files.create(file=f, purpose="batch")
-    #    batch_input_file_id = batch_input_file.id
-    #    print(f"Batch input file created: {batch_input_file}")
-#
-    #job = client.batches.create(
-    #    input_file_id=batch_input_file_id,
-    #    endpoint="/v1/chat/completions",
-    #    completion_window="24h",
-    #    metadata={
-    #        "description": "original"
-    #    }
-    #)
-    #print("Batch job:")
-# #
-    #pprint(job)
-
+    # prepare_data("CoT_few_shot_1", rows)
+    # prepare_data("original_o3mini", rows)
+# 
+    # client = OpenAI()
+    # with open("../data/finegrained/original_o3mini/request.jsonl", 'rb') as f:
+    #     batch_input_file = client.files.create(file=f, purpose="batch")
+    #     batch_input_file_id = batch_input_file.id
+    #     print(f"Batch input file created: {batch_input_file}")
+# 
+    # job = client.batches.create(
+    #     input_file_id=batch_input_file_id,
+    #     endpoint="/v1/chat/completions",
+    #     completion_window="24h",
+    #     metadata={
+    #         "description": "original_o3mini"
+    #     }
+    # )
+    # print("Batch job:")
+# # 
+    # pprint(job)
     # contents_zero_shot_1 = extract_contents_from_jsonl("../data/finegrained/zero_shot/zero_shot_output_1.jsonl")
     # contents_zero_shot_2 = extract_contents_from_jsonl("../data/finegrained/zero_shot/zero_shot_output_2.jsonl")
     # contents_zero_shot_3 = extract_contents_from_jsonl("../data/finegrained/zero_shot/zero_shot_output_3.jsonl")
@@ -297,14 +423,13 @@ def main():
     for i in range(len(training_data)):
         training_data[i][2] = training_data[i][2] / 30
 
-    #training_data = list(filter(lambda x: x[2] <= 0.3 or x[2] >= 0.7, training_data))
+    # training_data = list(filter(lambda x: x[2] <= 0.2 or x[2] >= 0.8, training_data))
     training_data = list(map(lambda x: x[0]+"_"+x[1]+"_"+f"{x[2]}", training_data))
     output_file = "../data/finegrained/softlabel.txt"
     
     with open(output_file, "w") as f:
         for path in training_data:
             f.write(path + "\n")
-
     #contents_1 = extract_contents_from_jsonl("../data/finegrained/original/output_1.jsonl")
     #for i in range(len(training_data)):
     #    if contents_1[i] == "$A$":

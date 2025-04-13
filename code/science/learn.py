@@ -67,6 +67,6 @@ gpu = False
 features = ['v_enc_dim300', 'v_freq_freq', 'v_deg', 'v_sense', 'e_vertexsim', 
 	'e_dir', 'e_rel', 'e_weightsource', 'e_sense']
 feature_len = 20
-split_frac = 0.8
+split_frac = 0.999
 train(features, feature_len, split_frac, 'train.log',
-	  		dataset_name='science', path_filename='paths.pkl', data_filename='rr_answers_pairwise_softlabel.txt', soft_label=True)
+	  		dataset_name='science', path_filename='paths.pkl', data_filename='../finegrained/softlabel.txt', soft_label=True)
