@@ -53,6 +53,11 @@ def main():
 		return
 	encoder_path, predictor_path = sys.argv[1:3]
 
+	path_filename = "paths.pkl"
+	data_filename = "answers.txt"
+	dataset = Dataset('money', features, 0, gpu,
+		path_filename=path_filename, data_filename=data_filename, soft_label=False, new_path_format=False)
+
 	if encoder_path == "all" and predictor_path == "all":
 		with open("./test.log", "w") as f:
 			epoc = 0
