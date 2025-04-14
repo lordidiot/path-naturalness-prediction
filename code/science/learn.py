@@ -17,7 +17,8 @@ def train(features, fea_len, split_frac, out_file,
 	if isinstance(out_file, str):
 		out_file = open(out_file, 'w')
 	d = Dataset(dataset_name, features, split_frac, gpu, 
-		path_filename=path_filename, data_filename=data_filename, soft_label=soft_label, new_path_format=new_path_format)
+		path_filename=path_filename, data_filename=data_filename,
+		soft_label=soft_label, new_path_format=new_path_format, random_seed=random_seed)
 	enc = ChainEncoder(d.get_v_fea_len(), d.get_e_fea_len(), fea_len, 'last')
 	# New training pipeline for experiments that use win-rate soft labels: set soft_label=True
 	predictor = Predictor(fea_len) if not soft_label else PredictorSoftLabel(fea_len)
@@ -71,6 +72,7 @@ def train(features, fea_len, split_frac, out_file,
 ##################################
 # [!] TRAINING CONFIGURATION [!] #
 ##################################
+RANDOM_SEED = 42
 DATASET_NAME = "science"
 DATA_FILENAME = "human_train_answers.txt"
 PATH_FILENAME = "paths.pkl"
@@ -83,4 +85,4 @@ FEATURES = ['v_enc_dim300', 'v_freq_freq', 'v_deg', 'v_sense', 'e_vertexsim', 'e
 gpu = False
 train(FEATURES, FEATURE_LEN, SPLIT_FRAC, 'train.log',
 	  dataset_name=DATASET_NAME, path_filename=PATH_FILENAME, data_filename=DATA_FILENAME,
-	  soft_label=SOFT_LABEL, new_path_format=NEW_PATH_FORMAT)
+	  soft_label=SOFT_LABEL, new_path_format=NEW_PATH_FORMAT, random_seed=RANDOM_SEED)

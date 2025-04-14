@@ -38,6 +38,7 @@ def evaluate(d: Dataset, fea_len, encoder_path, predictor_path,
 ###################################j
 # [!] EVALUATION CONFIGURATION [!] #
 ####################################
+RANDOM_SEED = 42
 DATASET_NAME = "money"
 DATA_FILENAME = "answers.txt"
 PATH_FILENAME = "paths.pkl"
@@ -54,7 +55,7 @@ def main():
 
 	dataset = Dataset(DATASET_NAME, FEATURES, 0, gpu,
 		path_filename=PATH_FILENAME, data_filename=DATA_FILENAME,
-		soft_label=SOFT_LABEL, new_path_format=NEW_PATH_FORMAT)
+		soft_label=SOFT_LABEL, new_path_format=NEW_PATH_FORMAT, random_seed=RANDOM_SEED)
 
 	if encoder_path == "all" and predictor_path == "all":
 		with open("./test.log", "w") as f:
@@ -76,7 +77,7 @@ def main():
 
 	# When evaluating on hard label dataset, use this
 	print(evaluate(dataset, FEATURE_LEN, encoder_path, predictor_path,
-				   soft_label=SOFT_LABEL))
+				   soft_label=SOFT_LABEL, random_seed=RANDOM_SEED))
 	
 	# When evaluating on soft label dataset, use this
 	# print(evaluate(features, feature_len, encoder_path, predictor_path,
