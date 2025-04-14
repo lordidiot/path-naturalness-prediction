@@ -9,14 +9,15 @@ from dataset import Dataset
 from multiprocessing import Pool
 
 gpu = False
-def evaluate(d: Dataset, fea_len, encoder_path, predictor_path,
+def evaluate(v_fea_len, e_fea_len, test_pairs,
+			 fea_len, encoder_path, predictor_path,
 			 soft_label=False, random_seed=42):
 	# Fix random seed for reproducibility
 	np.random.seed(random_seed)	
 	torch.manual_seed(random_seed)
 	# d = Dataset(dataset_name, features, 0, gpu,
 	# path_filename=path_filename, data_filename=data_filename, soft_label=soft_label, new_path_format=new_path_format)
-	enc = ChainEncoder(d.get_v_fea_len(), d.get_e_fea_len(), fea_len, 'last')
+	enc = ChainEncoder(v_fea_len, e_fea_len, fea_len, 'last')
 	enc.load_state_dict(torch.load(encoder_path))
 	predictor = Predictor(fea_len) if not soft_label else PredictorSoftLabel(fea_len)
 	predictor.load_state_dict(torch.load(predictor_path))
@@ -25,7 +26,7 @@ def evaluate(d: Dataset, fea_len, encoder_path, predictor_path,
 	if gpu:
 		enc.cuda()
 		predictor.cuda()
-	test_chain_A, test_chain_B, test_y = d.get_test_pairs()
+	test_chain_A, test_chain_B, test_y = test_pairs
 	test_y = test_y.data.cpu().numpy()
 	with torch.no_grad():
 		output_test_A = enc(test_chain_A)
@@ -56,6 +57,9 @@ def main():
 	dataset = Dataset(DATASET_NAME, FEATURES, 0, gpu,
 		path_filename=PATH_FILENAME, data_filename=DATA_FILENAME,
 		soft_label=SOFT_LABEL, new_path_format=NEW_PATH_FORMAT, random_seed=RANDOM_SEED)
+	v_fea_len = dataset.get_v_fea_len()
+	e_fea_len = dataset.get_e_fea_len()
+	test_pairs = dataset.get_test_pairs()
 
 	if encoder_path == "all" and predictor_path == "all":
 		with open("./test.log", "w") as f:
@@ -64,19 +68,22 @@ def main():
 				encoder_path = f"ckpt/{epoc}_encoder.model"
 				predictor_path = f"ckpt/{epoc}_predictor.model"
 				print(f"Evaluating {encoder_path} and {predictor_path}")
-				acc = evaluate(dataset, FEATURE_LEN, encoder_path, predictor_path,
+				acc = evaluate(v_fea_len, e_fea_len, test_pairs,
+				   			   FEATURE_LEN, encoder_path, predictor_path,
 							   soft_label=SOFT_LABEL)
 				f.write(f'{acc}\n')
 				epoc += 50
 			encoder_path = "ckpt/final_encoder.model"
 			predictor_path = "ckpt/final_predictor.model"
-			acc = evaluate(dataset, FEATURE_LEN, encoder_path, predictor_path,
+			acc = evaluate(v_fea_len, e_fea_len, test_pairs,
+				  		   FEATURE_LEN, encoder_path, predictor_path,
 						   soft_label=SOFT_LABEL)
 			f.write(f'{acc}\n')
 			return
 
 	# When evaluating on hard label dataset, use this
-	print(evaluate(dataset, FEATURE_LEN, encoder_path, predictor_path,
+	print(evaluate(v_fea_len, e_fea_len, test_pairs,
+				   FEATURE_LEN, encoder_path, predictor_path,
 				   soft_label=SOFT_LABEL, random_seed=RANDOM_SEED))
 	
 	# When evaluating on soft label dataset, use this
